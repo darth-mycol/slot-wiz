@@ -6,7 +6,7 @@ MINIMUM_BOOKED = 100
 PER_SLOT_PROCESSING = 100
 MINIMUM_SHOW = 0
 NUMBER_OF_SLOTS = 2
-p = 0.5
+show_up_prob = 0.5
 permutation_dictionary = []
 
 
@@ -27,7 +27,7 @@ def calculate_benefit(gain, wait, loss):
 def get_recursive_benefit(slot_booked_list):
     slot_distribution_list = []
     for term in slot_booked_list:
-        slot_distribution_list.append(ss.binom(term, p))
+        slot_distribution_list.append(ss.binom(term, show_up_prob))
     return recursive_benefit_calculation(1, 0, 0, 0, slot_distribution_list, slot_booked_list, 0)
 
 

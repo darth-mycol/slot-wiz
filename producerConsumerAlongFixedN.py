@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 MAX_BOOKED = 108
 PER_SLOT_PROCESSING = 20
 NUMBER_OF_SLOTS = 3
-p = 0.5
+show_up_prob = 0.5
 
 MINIMUM_BOOKED = PER_SLOT_PROCESSING
 MINIMUM_SHOW = 0
@@ -57,7 +57,7 @@ def calculate_payoff(gain, wait_loss, loss):
 def initialize_and_get_recursive_benefit(slot_booked_list):
     slot_distribution_list = []
     for term in slot_booked_list:
-        slot_distribution_list.append(ss.binom(term, p))
+        slot_distribution_list.append(ss.binom(term, show_up_prob))
     return recursive_benefit_calculation(1, 0, 0, 0, slot_distribution_list, slot_booked_list, 0)
 
 
@@ -133,7 +133,7 @@ def optimize_from_given_start_vector(present_configuration, present_benefit, pre
 
 def execute(csv_file):
     print "\n\tParameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p ", MAX_BOOKED, PER_SLOT_PROCESSING, \
-        NUMBER_OF_SLOTS, p, time.time()
+        NUMBER_OF_SLOTS, show_up_prob, time.time()
 
     heading = ["N", "PAYOFF"]
     for slot_number in range(NUMBER_OF_SLOTS): heading.append("Optimal Slot" + str(slot_number + 1))
@@ -172,7 +172,7 @@ def execute(csv_file):
     plt.show()
 
     print "\n\tFinal Output for Optimal N configuration and payoff ", highest_benefit_config, highest_benefit
-    print "\n\tParameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p ", MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p
+    print "\n\tParameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p ", MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob
 
 
 def populate_permutations(incomplete_list, recursive_level):
@@ -209,7 +209,7 @@ def filter_permutations():
 initialize_permutation_dictionary()
 
 filename = "MAX_BOOKED_" + str(MAX_BOOKED) + "_" + "PER_SLOT_" + str(
-    PER_SLOT_PROCESSING) + "_" + "NUMBER_OF_SLOTS_" + str(NUMBER_OF_SLOTS) + "_" + "prob_" + str(p) + ".csv"
+    PER_SLOT_PROCESSING) + "_" + "NUMBER_OF_SLOTS_" + str(NUMBER_OF_SLOTS) + "_" + "prob_" + str(show_up_prob) + ".csv"
 output_file = open(filename, 'w')
 csv_file = csv.writer(output_file)
 execute(csv_file)

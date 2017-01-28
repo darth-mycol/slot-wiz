@@ -12,7 +12,7 @@ MAX_PER_SLOT = 1
 
 INCLUDE_LAST_VALUE = 1
 
-p = 0.5
+show_up_prob = 0.5
 
 
 def validate_parameters(loss, gain, wait, prob, configuration):
@@ -52,7 +52,7 @@ def propagate(loss, gain, presently_waiting, prob, configuration):
     if len(configuration) == AVAILABLE_SLOT - 1:
         empty = MAX_BOOKED - calculate_filled_till_now(configuration)
         for slot_value in range(MINIMUM_BOOKED, empty):
-            slot_distribution = ss.binom(slot_value, p)
+            slot_distribution = ss.binom(slot_value, show_up_prob)
             for show_up in range(0, slot_value + INCLUDE_LAST_VALUE):
                 slot_prob = slot_distribution.pmf(show_up)
 
@@ -81,9 +81,9 @@ max_x = 0
 max_y = 0
 
 for x in range(MINIMUM_BOOKED, MAX_BOOKED + 1):
-    x_distribution = ss.binom(x, p)
+    x_distribution = ss.binom(x, show_up_prob)
     for y in range(MINIMUM_BOOKED, MAX_BOOKED - x + 1):
-        y_distribution = ss.binom(y, p)
+        y_distribution = ss.binom(y, show_up_prob)
         xy_total = 0
 
         for x_value in range(MINIMUM_BOOKED, x + 1):

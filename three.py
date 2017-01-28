@@ -9,7 +9,7 @@ MINIMUM_SHOW = 0
 
 SLOT_PREFERENCE = 2
 
-p = 0.9
+show_up_prob = 0.9
 
 output_file = open('output.csv', 'w')
 csv_file = csv.writer(output_file)
@@ -24,11 +24,11 @@ slot_x = 0
 slot_y = 0
 
 for x in range(MINIMUM_BOOKED, MAX_BOOKED + 1):
-    x_distribution = ss.binom(x, p)
+    x_distribution = ss.binom(x, show_up_prob)
     for y in range(MINIMUM_BOOKED, MAX_BOOKED - x + 1):
-        y_distribution = ss.binom(y, p)
+        y_distribution = ss.binom(y, show_up_prob)
         for z in range(MINIMUM_BOOKED, MAX_BOOKED - x - y + 1):
-            z_distribution = ss.binom(y, p)
+            z_distribution = ss.binom(y, show_up_prob)
             xy_total = 0
 
             for x_value in range(MINIMUM_BOOKED, x + 1):

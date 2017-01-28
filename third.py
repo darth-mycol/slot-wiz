@@ -2,15 +2,15 @@ import scipy.stats as ss
 import time
 from matplotlib import pyplot as plt
 
-AVAILABLE_SLOTS = 200
+PER_SLOT_PROCESSING = 200
 MAX_BOOKED = 2000
 MINIMUM_BOOKED = 1
 MINIMUM_SHOW = 0
 
 def calculate_cost(probability, show_up, booked):
-	if (show_up < AVAILABLE_SLOTS):
+	if (show_up < PER_SLOT_PROCESSING):
 		return show_up * probability
-	cost = (show_up - (show_up - AVAILABLE_SLOTS) * (show_up - AVAILABLE_SLOTS))
+	cost = (show_up - (show_up - PER_SLOT_PROCESSING) * (show_up - PER_SLOT_PROCESSING))
 	return cost * probability
 		
 

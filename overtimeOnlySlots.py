@@ -9,7 +9,7 @@ MINIMUM_SHOW = 0
 
 SLOT_PREFERENCE = 100
 
-p = 0.9
+show_up_prob = 0.9
 
 output_file = open('output_slots.csv', 'w')
 csv_file = csv.writer(output_file)
@@ -45,8 +45,8 @@ while (True):
         y = pair[2]
 
 
-        x_distribution = ss.binom(x, p)
-        y_distribution = ss.binom(y, p)
+        x_distribution = ss.binom(x, show_up_prob)
+        y_distribution = ss.binom(y, show_up_prob)
         xy_total = 0
 
         for x_value in range(MINIMUM_SHOW, x + 1):
