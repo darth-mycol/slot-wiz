@@ -210,14 +210,9 @@ def execute():
         elif stop_at_optimal_N_for_level_by_level_calculation:
             break
 
-    output_rows.append([])
-    row_value = [sum(highest_payoff_config), highest_payoff]
-    for slot in range(NUMBER_OF_SLOTS): row_value.append(highest_payoff_config[slot])
-    output_rows.append(row_value)
-
     print "\n\tFinal Output for Optimal N configuration and payoff ", highest_payoff_config, highest_payoff
     print "\n\tParameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p ", MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob
-    return n_value_list, payoff_value_list, output_rows
+    return n_value_list, payoff_value_list, output_rows, highest_payoff_config, highest_payoff
 
 
 # populate permutation terms in number of slots with values between -1, 0 ,1
@@ -265,7 +260,7 @@ def set_parameters_and_get_optimal_distribution(MAX_BOOKED_PARAM, show_up_prob_P
     stop_at_optimal_N_for_level_by_level_calculation = stop_at_optimal_N_for_level_by_level_calculation_param
     debug_logger = debug_logger_param
 
-    entry_point(TAG)
+    return entry_point(TAG)
 
 
 # internal entry point
@@ -273,17 +268,19 @@ def entry_point(TAG="TAG"):
     print "\n\tParameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p, TAG ", MAX_BOOKED, PER_SLOT_PROCESSING, \
         NUMBER_OF_SLOTS, show_up_prob, TAG, time.time()
 
-    n_value_list, payoff_value_list, rows = execute()
+    n_value_list, payoff_value_list, output_rows, highest_payoff_config, highest_payoff = execute()
 
     filename = TAG + "MAX_BOOKED_" + str(MAX_BOOKED) + "_" + "PER_SLOT_" + str(
         PER_SLOT_PROCESSING) + "_" + "NUMBER_OF_SLOTS_" + str(NUMBER_OF_SLOTS) + "_" + "prob_" + str(show_up_prob)
     output_file = open("Output-csv/" + filename + ".csv", 'w')
     csv_file = csv.writer(output_file)
-    csv_file.writerows(rows)
+    csv_file.writerows(output_rows)
     output_file.close()
 
     plt.plot(n_value_list, payoff_value_list)
     plt.savefig("Output-png/" + filename + ".png", bbox_inches='tight')
+
+    return highest_payoff_config, highest_payoff
 
 
 if __name__ == "__main__":
