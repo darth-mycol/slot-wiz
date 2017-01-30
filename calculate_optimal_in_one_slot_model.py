@@ -1,7 +1,11 @@
+import csv
+
 import scipy.stats as ss
 
-PER_SLOT_PROCESSING = 10
-MAX_BOOKED = 25
+import slot_distribution_calculator as distribution_calc
+
+PER_SLOT_PROCESSING = 201
+MAX_BOOKED = 500
 show_up_prob = 0.4
 
 MINIMUM_BOOKED = PER_SLOT_PROCESSING
@@ -44,6 +48,50 @@ def set_parameters_and_get_optimal_n(PER_SLOT_PROCESSING_PARAM, MAX_BOOKED_PARAM
     return calculate_optimal_n_and_cost()
 
 
-if __name__ == "__main__":
+def get_optimal_for_probability_list():
+    global show_up_prob
+    probability_list = []
+    for prob in range(40, 71, 5):
+        probability_list.append(float(prob) / 100)
+    for prob in range(80, 96, 5):
+        probability_list.append(float(prob) / 100)
+    probability_list.append(0.99)
+
+    NUMBER_OF_SLOTS = 3
+
+    heading = ["Prob", "N", "PAYOFF"]
+    for slot_number in range(NUMBER_OF_SLOTS): heading.append("Optimal Slot" + str(slot_number + 1))
+    heading.append("Distributed Payoff")
+    output_rows = [heading]
+
+    for probability in probability_list:
+        show_up_prob = probability
+        print "PER_SLOT_PROCESSING, MAX_BOOKED, p, MINIMUM_BOOKED", PER_SLOT_PROCESSING, MAX_BOOKED, show_up_prob, MINIMUM_BOOKED
+        expected_cost, optimal_N = calculate_optimal_n_and_cost()
+
+        distributed_configuration, payoff = distribution_calc.set_parameters_and_estimate_payoff(
+            show_up_prob_PARAM=probability, PER_SLOT_PROCESSING_PARAM=PER_SLOT_PROCESSING/NUMBER_OF_SLOTS,
+            NUMBER_OF_SLOTS_PARAM=NUMBER_OF_SLOTS, total_booking=optimal_N, max_booked_param=MAX_BOOKED)
+
+        row_value = [show_up_prob, optimal_N, expected_cost]
+        for slot in range(NUMBER_OF_SLOTS): row_value.append(distributed_configuration[slot])
+        row_value.append(payoff)
+        output_rows.append(row_value)
+
+
+    TAG = "ONE_SLOT_BOOKING_"
+    filename = TAG + "PER_SLOT_" + str(PER_SLOT_PROCESSING)
+    output_file = open("Aggregated-csv/" + filename + ".csv", 'w')
+    csv_file = csv.writer(output_file)
+    csv_file.writerows(output_rows)
+    output_file.close()
+
+
+def get_optimal_for_single_given_prob():
     print "PER_SLOT_PROCESSING, MAX_BOOKED, p, MINIMUM_BOOKED", PER_SLOT_PROCESSING, MAX_BOOKED, show_up_prob, MINIMUM_BOOKED
     print calculate_optimal_n_and_cost()
+
+
+if __name__ == "__main__":
+    get_optimal_for_probability_list()
+    # get_optimal_for_single_given_prob()

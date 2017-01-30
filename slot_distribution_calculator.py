@@ -35,9 +35,9 @@ def get_initial_configuration(iterator):
     if NUMBER_OF_SLOTS == 1:
         return [MAX_BOOKED - iterator]
     elif NUMBER_OF_SLOTS == 2:
-        return [(MAX_BOOKED - iterator) / 2, (MAX_BOOKED + 1 - iterator) / 2]
+        return [(MAX_BOOKED + 1 - iterator) / 2, (MAX_BOOKED - iterator) / 2]
     elif NUMBER_OF_SLOTS == 3:
-        return [(MAX_BOOKED - iterator) / 3, (MAX_BOOKED + 1 - iterator) / 3, (MAX_BOOKED + 2 - iterator) / 3]
+        return [(MAX_BOOKED + 2 - iterator) / 3, (MAX_BOOKED + 1 - iterator) / 3, (MAX_BOOKED - iterator) / 3]
     else:
         raise ValueError('Initial Configuration Not Defined For Chosen Number of Slots')
 
@@ -69,9 +69,9 @@ def get_present_waiting(number_show_up, appointments_booked_in_slot, slot_show_u
         return slot_show_up_distribution.pmf(number_show_up)
 
 
-def estimate_payoff(variation):
-    gain = sum(variation) * show_up_prob
-    wait_loss, over_time_loss = estimate_loss(variation, {(-1, 0): 1})
+def estimate_payoff(schedule):
+    gain = sum(schedule) * show_up_prob
+    wait_loss, over_time_loss = estimate_loss(schedule, {(-1, 0): 1})
     return gain - wait_loss - over_time_loss
 
 
@@ -261,6 +261,21 @@ def set_parameters_and_get_optimal_distribution(MAX_BOOKED_PARAM, show_up_prob_P
     debug_logger = debug_logger_param
 
     return entry_point(TAG)
+
+
+# external entry point for payoff calculation
+def set_parameters_and_estimate_payoff(show_up_prob_PARAM, PER_SLOT_PROCESSING_PARAM, NUMBER_OF_SLOTS_PARAM,
+                                       total_booking, max_booked_param):
+
+    global PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob, MINIMUM_BOOKED, MAX_BOOKED
+    MAX_BOOKED = max_booked_param
+    PER_SLOT_PROCESSING = PER_SLOT_PROCESSING_PARAM
+    MINIMUM_BOOKED = PER_SLOT_PROCESSING_PARAM
+    NUMBER_OF_SLOTS = NUMBER_OF_SLOTS_PARAM
+    show_up_prob = show_up_prob_PARAM
+
+    initial_configuration = get_initial_configuration(max_booked_param - total_booking)
+    return initial_configuration[:], estimate_payoff(initial_configuration)
 
 
 # internal entry point
