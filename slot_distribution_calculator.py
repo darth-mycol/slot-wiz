@@ -6,8 +6,8 @@ import time
 import scipy.stats as ss
 
 MAX_BOOKED = 20
-PER_SLOT_PROCESSING = 10
-NUMBER_OF_SLOTS = 1
+PER_SLOT_PROCESSING = 1
+NUMBER_OF_SLOTS = 2
 show_up_prob = 0.5
 
 N_CALCULATION_RANGE = MAX_BOOKED
@@ -73,6 +73,8 @@ def estimate_loss(schedule, probability_dict, over_time_power):
     if len(schedule) != NUMBER_OF_SLOTS or NUMBER_OF_SLOTS < 1: raise Exception("len(schedule) != NUMBER_OF_SLOTS")
     max_possible_carry_over = 0
     total_wait_loss = 0
+
+    all_theta_prob_dictionary_for_schedule = {}
     for slot_number in range(NUMBER_OF_SLOTS):
         booked_appointments = schedule[slot_number]
         if max_possible_carry_over + booked_appointments <= PER_SLOT_PROCESSING:
@@ -82,7 +84,7 @@ def estimate_loss(schedule, probability_dict, over_time_power):
 
         prob_of_at_least_one_over_load = 0
         patient_show_up_distribution = ss.binom(booked_appointments, show_up_prob)
-        for over_load in range(PER_SLOT_PROCESSING + 1, max_possible_carry_over + booked_appointments + 1):
+        for over_load in range(0, max_possible_carry_over + booked_appointments + 1):
             lower_bound = max(over_load - max_possible_carry_over, 0)
             upper_bound = min(booked_appointments, over_load)
             if lower_bound > upper_bound:
@@ -100,10 +102,12 @@ def estimate_loss(schedule, probability_dict, over_time_power):
                     alpha = get_present_waiting(show_up, booked_appointments, patient_show_up_distribution)
                     prob += theta * alpha
 
-            total_waiting_at_slot_end = over_load - PER_SLOT_PROCESSING
-            probability_dict[(slot_number, total_waiting_at_slot_end)] = prob
-            total_wait_loss += total_waiting_at_slot_end * prob
-            prob_of_at_least_one_over_load += prob
+            all_theta_prob_dictionary_for_schedule[(slot_number, over_load)] = prob
+            if over_load > PER_SLOT_PROCESSING:
+                total_waiting_at_slot_end = over_load - PER_SLOT_PROCESSING
+                probability_dict[(slot_number, total_waiting_at_slot_end)] = prob
+                total_wait_loss += total_waiting_at_slot_end * prob
+                prob_of_at_least_one_over_load += prob
 
         max_possible_carry_over = max(max_possible_carry_over + booked_appointments - PER_SLOT_PROCESSING, 0)
 

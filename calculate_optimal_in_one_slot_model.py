@@ -48,6 +48,7 @@ def set_parameters_and_get_optimal_n(PER_SLOT_PROCESSING_PARAM, MAX_BOOKED_PARAM
     return calculate_optimal_n_and_cost()
 
 
+# todo This should become an external point of this code.
 def get_optimal_for_probability_list():
     global show_up_prob
     probability_list = []
