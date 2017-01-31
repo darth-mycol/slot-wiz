@@ -1,9 +1,9 @@
-import csv, sys
+import csv
 import itertools as itools
-import math
+import sys
 import time
 
-import scipy.stats as ss
+from payoff_calculator import estimate_payoff
 
 MAX_BOOKED = 20
 PER_SLOT_PROCESSING = 1
@@ -31,102 +31,16 @@ def initialize_permutation_dictionary():
             permutation_dictionary.append(configuration[:])
 
 
+def print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, previous_time):
+    print "\n********Parameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p, Over_Time_Power, over_time_constant, wait_time_constant, TAG, processing_time*******\n", \
+        MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob, over_time_power, over_time_constant, wait_time_constant, TAG, time.time() - previous_time, "\n"
+    return time.time()
+
 def get_initial_configuration(iterator):
     schedule = []
     for i in range(NUMBER_OF_SLOTS, 0, -1):
         schedule.append((MAX_BOOKED + (i - 1) - iterator) / NUMBER_OF_SLOTS)
     return schedule
-
-
-def get_previous_waiting(earlier_slot_waiting, slot_number, probability_dict):
-    if not probability_dict.has_key((slot_number, earlier_slot_waiting)):
-        # Should not Happen
-        raise Exception(
-            "Earlier Probability not found. Key: (earlier_slot_waiting, slot_number), and past_probabilities_dict",
-            earlier_slot_waiting, slot_number, probability_dict)
-
-    return probability_dict.get((slot_number, earlier_slot_waiting))
-
-
-# all values from 0 to per_slot for previous slot
-def get_theta_summation(probability_dict, slot_number):
-    return 1 if slot_number == -1 else get_previous_waiting(0, slot_number - 1, probability_dict)
-
-
-def get_present_waiting(number_show_up, appointments_booked_in_slot, slot_show_up_distribution):
-    if appointments_booked_in_slot < number_show_up:
-        # Should not Happen
-        raise Exception(
-            "Number Show Up somehow greater than total booking",
-            number_show_up, appointments_booked_in_slot, slot_show_up_distribution)
-    else:
-        return slot_show_up_distribution.pmf(number_show_up)
-
-
-def estimate_payoff(schedule, over_time_power=2):
-    gain = sum(schedule) * show_up_prob
-    wait_loss, over_time_loss = estimate_loss(schedule, {(-1, 0): 1}, over_time_power)
-    return gain - wait_loss - over_time_loss
-
-
-def estimate_loss(schedule, probability_dict, over_time_power):
-    if len(schedule) != NUMBER_OF_SLOTS or NUMBER_OF_SLOTS < 1: raise Exception("len(schedule) != NUMBER_OF_SLOTS")
-    max_possible_carry_over = 0
-    total_wait_loss = 0
-
-    all_theta_prob_dictionary_for_schedule = {}
-    for slot_number in range(NUMBER_OF_SLOTS):
-        booked_appointments = schedule[slot_number]
-        if max_possible_carry_over + booked_appointments <= PER_SLOT_PROCESSING:
-            probability_dict[(slot_number, 0)] = 1
-            max_possible_carry_over = 0
-            continue
-
-        prob_of_at_least_one_over_load = 0
-        patient_show_up_distribution = ss.binom(booked_appointments, show_up_prob)
-        for over_load in range(0, max_possible_carry_over + booked_appointments + 1):
-            lower_bound = max(over_load - max_possible_carry_over, 0)
-            upper_bound = min(booked_appointments, over_load)
-            if lower_bound > upper_bound:
-                continue
-
-            prob = 0
-            for show_up in range(lower_bound, upper_bound + 1):
-                if show_up == over_load:
-                    alpha = get_present_waiting(show_up, booked_appointments, patient_show_up_distribution)
-                    theta_summation = get_theta_summation(probability_dict, slot_number)
-                    prob += theta_summation * alpha
-                if show_up < over_load:
-                    earlier_slot_waiting = over_load - show_up
-                    theta = get_previous_waiting(earlier_slot_waiting, slot_number - 1, probability_dict)
-                    alpha = get_present_waiting(show_up, booked_appointments, patient_show_up_distribution)
-                    prob += theta * alpha
-
-            all_theta_prob_dictionary_for_schedule[(slot_number, over_load)] = prob
-            if over_load > PER_SLOT_PROCESSING:
-                total_waiting_at_slot_end = over_load - PER_SLOT_PROCESSING
-                probability_dict[(slot_number, total_waiting_at_slot_end)] = prob
-                total_wait_loss += total_waiting_at_slot_end * prob
-                prob_of_at_least_one_over_load += prob
-
-        max_possible_carry_over = max(max_possible_carry_over + booked_appointments - PER_SLOT_PROCESSING, 0)
-
-        probability_dict[(slot_number, 0)] = 1 - prob_of_at_least_one_over_load
-
-    over_time_loss = 0
-    for over_book in range(1, max_possible_carry_over + 1):
-        theta = get_previous_waiting(over_book, NUMBER_OF_SLOTS - 1, probability_dict)
-        over_time_loss += theta * math.pow(over_book, over_time_power)
-
-        overbooked_wait_cascading_cost = 0
-        over_book_wait_loss = over_book - PER_SLOT_PROCESSING
-        while over_book_wait_loss > 0:
-            overbooked_wait_cascading_cost += over_book_wait_loss
-            over_book_wait_loss -= PER_SLOT_PROCESSING
-
-        total_wait_loss += overbooked_wait_cascading_cost * theta
-
-    return total_wait_loss, over_time_loss
 
 
 def get_perturbation_list(present_configuration, earlier_configuration):
@@ -152,31 +66,30 @@ def generate_unique_permutation(earlier_configuration, perturbation_list, presen
         perturbation_list.append(permutation)
 
 
-def optimize_from_given_start_config(present_configuration, present_payoff, previous_configuration, over_time_power):
+def optimize_from_given_start_config(present_configuration, present_payoff, previous_configuration, over_time_power,
+                                     over_time_constant, wait_time_constant):
     perturbation_list = get_perturbation_list(present_configuration, previous_configuration)
     best_variation = []
     value_for_best_perturbation = -1
     improvement_possible = False
     for variation in perturbation_list:
-        perturbation_payoff = estimate_payoff(variation, over_time_power)
+        perturbation_payoff = estimate_payoff(variation, show_up_prob, PER_SLOT_PROCESSING, wait_time_constant,
+                                              over_time_constant, over_time_power)
         if perturbation_payoff > present_payoff:
             best_variation = variation[:]
             value_for_best_perturbation = perturbation_payoff
             improvement_possible = True
 
-        # if debug_logger == True:
-        #     print "LOGGER Calculated for perturbation : ", perturbation_payoff, variation
-
     if improvement_possible:
         if debug_logger == True:
             print "LOGGER best_variation, value_for_best_perturbation, present_configuration, time", best_variation, value_for_best_perturbation, present_configuration, time.time()
         return optimize_from_given_start_config(best_variation, value_for_best_perturbation, present_configuration,
-                                                over_time_power)
+                                                over_time_power, over_time_constant, wait_time_constant)
     else:
         return present_configuration, present_payoff
 
 
-def execute(over_time_power):
+def execute(over_time_power, wait_time_constant, over_time_constant):
     # Initialize list of perturbations
     initialize_permutation_dictionary()
 
@@ -184,6 +97,7 @@ def execute(over_time_power):
     for slot_number in range(NUMBER_OF_SLOTS): heading.append("Optimal Slot" + str(slot_number + 1))
     output_rows = [heading]
 
+    # Initialize Execution Parameters
     n_value_list = []
     payoff_value_list = []
 
@@ -192,9 +106,11 @@ def execute(over_time_power):
     for total_number_of_bookings in range(0, min(MAX_BOOKED - NUMBER_OF_SLOTS * PER_SLOT_PROCESSING + 1,
                                                  N_CALCULATION_RANGE)):
         initial_configuration = get_initial_configuration(total_number_of_bookings)
-        initial_payoff = estimate_payoff(initial_configuration, over_time_power)
+        initial_payoff = estimate_payoff(initial_configuration, show_up_prob, PER_SLOT_PROCESSING, wait_time_constant,
+                                         over_time_constant, over_time_power)
         optimal_config, optimal_payoff = optimize_from_given_start_config(initial_configuration, initial_payoff, [],
-                                                                          over_time_power)
+                                                                          over_time_power, over_time_constant,
+                                                                          wait_time_constant)
 
         n_value_list.append(MAX_BOOKED - total_number_of_bookings)
         payoff_value_list.append(optimal_payoff)
@@ -210,8 +126,6 @@ def execute(over_time_power):
         elif stop_at_optimal_N_for_level_by_level_calculation:
             break
 
-    print "\n\tFinal Output for Optimal N configuration and payoff ", highest_payoff_config, highest_payoff
-    print "\n\tParameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p ", MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob
     return n_value_list, payoff_value_list, output_rows, highest_payoff_config, highest_payoff
 
 
@@ -246,25 +160,11 @@ def filter_permutations():
     permutation_dictionary = filtered_permutation_list
 
 
-# external entry point for payoff calculation
-def set_parameters_and_estimate_payoff(show_up_prob_PARAM, PER_SLOT_PROCESSING_PARAM, NUMBER_OF_SLOTS_PARAM,
-                                       total_booking, max_booked_param):
-    global PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob, MINIMUM_BOOKED, MAX_BOOKED
-    MAX_BOOKED = max_booked_param
-    PER_SLOT_PROCESSING = PER_SLOT_PROCESSING_PARAM
-    MINIMUM_BOOKED = PER_SLOT_PROCESSING_PARAM
-    NUMBER_OF_SLOTS = NUMBER_OF_SLOTS_PARAM
-    show_up_prob = show_up_prob_PARAM
-
-    configuration = get_initial_configuration(max_booked_param - total_booking)
-    return configuration[:], estimate_payoff(configuration)
-
-
 # external entry point for optimal Schedule Calculation
 def set_params_and_get_optimal_schedule(MAX_BOOKED_PARAM, show_up_prob_PARAM, PER_SLOT_PROCESSING_PARAM,
-                                        NUMBER_OF_SLOTS_PARAM, over_time_power, debug_logger_param=False,
-                                        stop_at_optimal_N_for_level_by_level_calculation_param=False,
-                                        TAG="TAG"):
+                                        NUMBER_OF_SLOTS_PARAM, over_time_power, wait_time_constant, over_time_constant,
+                                        TAG="TAG", debug_logger_param=False,
+                                        stop_at_optimal_N_for_level_by_level_calculation_param=False):
     global MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob, N_CALCULATION_RANGE, stop_at_optimal_N_for_level_by_level_calculation, debug_logger, MINIMUM_BOOKED
     MAX_BOOKED = MAX_BOOKED_PARAM
     N_CALCULATION_RANGE = MAX_BOOKED_PARAM
@@ -275,15 +175,18 @@ def set_params_and_get_optimal_schedule(MAX_BOOKED_PARAM, show_up_prob_PARAM, PE
     stop_at_optimal_N_for_level_by_level_calculation = stop_at_optimal_N_for_level_by_level_calculation_param
     debug_logger = debug_logger_param
 
-    return get_optimal_schedule(TAG, over_time_power)
+    return get_optimal_schedule(over_time_constant, wait_time_constant, over_time_power, TAG)
 
 
 # internal entry point for optimal Schedule Calculation
-def get_optimal_schedule(TAG="TAG", over_time_power=2):
-    print "\n***************Parameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p, Over_Time_Power, TAG ", MAX_BOOKED, \
-        PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob, over_time_power, TAG, time.time(), "***************\n"
+def get_optimal_schedule(over_time_constant=1.0, wait_time_constant=1.0, over_time_power=2, TAG="TAG"):
+    start_time = print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, time.time())
 
-    n_value_list, payoff_value_list, output_rows, highest_payoff_config, highest_payoff = execute(over_time_power)
+    n_value_list, payoff_value_list, output_rows, highest_payoff_config, highest_payoff = execute(over_time_power,
+                                                                                                  wait_time_constant,
+                                                                                                  over_time_constant)
+    print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, start_time)
+    print "\tFinal Output for Optimal N configuration and payoff ", highest_payoff_config, highest_payoff, "\n\n"
 
     filename = TAG + "MAX_BOOKED_" + str(MAX_BOOKED) + "_" + "PER_SLOT_" + str(
         PER_SLOT_PROCESSING) + "_" + "NUMBER_OF_SLOTS_" + str(NUMBER_OF_SLOTS) + "_" + "prob_" + str(show_up_prob)
@@ -299,4 +202,4 @@ def get_optimal_schedule(TAG="TAG", over_time_power=2):
 
 
 if __name__ == "__main__":
-    get_optimal_schedule()
+    get_optimal_schedule(over_time_constant=1, wait_time_constant=1)
