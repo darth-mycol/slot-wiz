@@ -43,48 +43,44 @@ def get_initial_configuration(iterator):
     return schedule
 
 
-def get_perturbation_list(present_configuration, earlier_configuration):
+def get_perturbation_list(present_configuration, previous_neighbourhood):
     perturbation_list = []
     for variation in permutation_dictionary:
-        generate_unique_permutation(earlier_configuration, perturbation_list, present_configuration, variation)
+        permutation = present_configuration[:]
+        for index, term in enumerate(permutation):
+            term += variation[index]
+            permutation[index] = term
+            if term < 0:
+                return
+        permutation_tuple = tuple(permutation)
+        if not previous_neighbourhood.has_key(permutation_tuple):
+            perturbation_list.append(permutation)
+            previous_neighbourhood[permutation_tuple] = 1
+
     if debug_logger:
         print "LOGGER perturbation_list : ", perturbation_list
     return perturbation_list
 
 
-def generate_unique_permutation(earlier_configuration, perturbation_list, present_configuration, variation):
-    permutation = present_configuration[:]
-    for index, term in enumerate(permutation):
-        term += variation[index]
-        permutation[index] = term
-        if term < 0:
-            return
-    if not (earlier_configuration is not None and len(
-            earlier_configuration) > 0 and earlier_configuration == permutation) and not (
-                        present_configuration is not None and len(
-                    present_configuration) > 0 and present_configuration == permutation):
-        perturbation_list.append(permutation)
-
-
-def optimize_from_given_start_config(present_configuration, present_payoff, previous_configuration, over_time_power,
-                                     over_time_constant, wait_time_constant):
-    perturbation_list = get_perturbation_list(present_configuration, previous_configuration)
+def optimize_from_given_start_config(present_configuration, present_payoff, over_time_power,
+                                     over_time_constant, wait_time_constant, previous_neighbourhood):
+    perturbation_list = get_perturbation_list(present_configuration, previous_neighbourhood)
     best_variation = []
-    value_for_best_perturbation = -1
-    improvement_possible = False
+    value_for_best_perturbation = -sys.maxint - 1
+    # noinspection PyTypeChecker
     for variation in perturbation_list:
         perturbation_payoff = estimate_payoff(variation, show_up_prob, PER_SLOT_PROCESSING, wait_time_constant,
                                               over_time_constant, over_time_power)
         if perturbation_payoff > present_payoff:
             best_variation = variation[:]
             value_for_best_perturbation = perturbation_payoff
-            improvement_possible = True
 
-    if improvement_possible:
+    if value_for_best_perturbation > -sys.maxint - 1:
         if debug_logger == True:
             print "LOGGER best_variation, value_for_best_perturbation, present_configuration, time", best_variation, value_for_best_perturbation, present_configuration, time.time()
-        return optimize_from_given_start_config(best_variation, value_for_best_perturbation, present_configuration,
-                                                over_time_power, over_time_constant, wait_time_constant)
+        return optimize_from_given_start_config(best_variation, value_for_best_perturbation, over_time_power,
+                                                over_time_constant, wait_time_constant,
+                                                previous_neighbourhood)
     else:
         return present_configuration, present_payoff
 
@@ -108,9 +104,9 @@ def execute(over_time_power, wait_time_constant, over_time_constant):
         initial_configuration = get_initial_configuration(total_number_of_bookings)
         initial_payoff = estimate_payoff(initial_configuration, show_up_prob, PER_SLOT_PROCESSING, wait_time_constant,
                                          over_time_constant, over_time_power)
-        optimal_config, optimal_payoff = optimize_from_given_start_config(initial_configuration, initial_payoff, [],
+        optimal_config, optimal_payoff = optimize_from_given_start_config(initial_configuration, initial_payoff,
                                                                           over_time_power, over_time_constant,
-                                                                          wait_time_constant)
+                                                                          wait_time_constant, {tuple(initial_configuration) : 1})
 
         n_value_list.append(MAX_BOOKED - total_number_of_bookings)
         payoff_value_list.append(optimal_payoff)
