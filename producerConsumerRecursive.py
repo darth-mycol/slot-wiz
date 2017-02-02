@@ -7,7 +7,7 @@ PER_SLOT_PROCESSING = 100
 MINIMUM_SHOW = 0
 NUMBER_OF_SLOTS = 2
 show_up_prob = 0.5
-permutation_dictionary = []
+permutation_dictionary_list = []
 
 
 def calculate_benefit(gain, wait, loss):
@@ -57,7 +57,7 @@ def recursive_benefit_calculation(prob, gain, wait, loss, slot_distribution_list
 
 def get_perturbations(present_configuration, earlier_configuration):
     perturbation_list = []
-    for variation in permutation_dictionary:
+    for variation in permutation_dictionary_list:
         left = present_configuration[:]
         non_zero = True
         for index, term in enumerate(left):
@@ -110,7 +110,7 @@ def populate_permutations(incomplete_list, recursive_level):
         permutation = incomplete_list[:]
         permutation.append(term)
         if recursive_level == NUMBER_OF_SLOTS - 1:
-            permutation_dictionary.append(permutation)
+            permutation_dictionary_list.append(permutation)
         else:
             populate_permutations(permutation, recursive_level + 1)
 

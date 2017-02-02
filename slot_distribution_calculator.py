@@ -5,9 +5,9 @@ import time
 
 from payoff_calculator import estimate_payoff
 
-MAX_BOOKED = 20
-PER_SLOT_PROCESSING = 1
-NUMBER_OF_SLOTS = 2
+MAX_BOOKED = 375
+PER_SLOT_PROCESSING = 67
+NUMBER_OF_SLOTS = 3
 show_up_prob = 0.5
 
 N_CALCULATION_RANGE = MAX_BOOKED
@@ -15,26 +15,50 @@ MINIMUM_BOOKED = PER_SLOT_PROCESSING
 stop_at_optimal_N_for_level_by_level_calculation = False
 debug_logger = False
 
-MINIMUM_SHOW = 0
-permutation_dictionary = []
+permutation_dictionary_list = []
 
 
-def initialize_permutation_dictionary():
-    global permutation_dictionary
-    permutation_dictionary = []
+def add_sample_to_permutation_dictionary(index, permutation_dictionary_list, total_possibilities, sample_size,
+                                         single_sample_dictionary):
+    if len(single_sample_dictionary) > sample_size or index == total_possibilities - 1:
+        permutation_dictionary_list.append(single_sample_dictionary[:])
+        single_sample_dictionary = []
+    return single_sample_dictionary
+
+
+def initialize_permutation_dictionary(sample_size, permutation_across_n=False):
+    global permutation_dictionary_list
+    permutation_dictionary_list = []
     if NUMBER_OF_SLOTS > 1:
-        position_permutations = set(list(itools.permutations(range(NUMBER_OF_SLOTS), 2)))
-        for position_configuration in position_permutations:
-            configuration = [0 for x in range(NUMBER_OF_SLOTS)]
-            configuration[position_configuration[0]] = -1
-            configuration[position_configuration[1]] = 1
-            permutation_dictionary.append(configuration[:])
+        single_sample_dictionary = []
+        if permutation_across_n:
+            for index in range(NUMBER_OF_SLOTS):
+                configuration = [0 for x in range(NUMBER_OF_SLOTS)]
+                configuration[index] = -1
+                single_sample_dictionary.append(configuration[:])
+                configuration[index] = 1
+                single_sample_dictionary.append(configuration[:])
+
+                single_sample_dictionary = add_sample_to_permutation_dictionary(index, permutation_dictionary_list,
+                                                                                NUMBER_OF_SLOTS, sample_size,
+                                                                                single_sample_dictionary)
+        else:
+            position_permutations = set(list(itools.permutations(range(NUMBER_OF_SLOTS), 2)))
+            for index, position_configuration in enumerate(position_permutations):
+                configuration = [0 for x in range(NUMBER_OF_SLOTS)]
+                configuration[position_configuration[0]] = -1
+                configuration[position_configuration[1]] = 1
+                single_sample_dictionary.append(configuration[:])
+                single_sample_dictionary = add_sample_to_permutation_dictionary(index, permutation_dictionary_list,
+                                                                                len(position_permutations), sample_size,
+                                                                                single_sample_dictionary)
 
 
 def print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, previous_time):
     print "\n********Parameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p, Over_Time_Power, over_time_constant, wait_time_constant, TAG, processing_time*******\n", \
         MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob, over_time_power, over_time_constant, wait_time_constant, TAG, time.time() - previous_time, "\n"
     return time.time()
+
 
 def get_initial_configuration(iterator):
     schedule = []
@@ -43,15 +67,23 @@ def get_initial_configuration(iterator):
     return schedule
 
 
-def get_perturbation_list(present_configuration, previous_neighbourhood):
+def get_unique_permutation(present_configuration, variation):
+    permutation = present_configuration[:]
+    for index, term in enumerate(permutation):
+        term += variation[index]
+        permutation[index] = term
+        if term < 0:
+            return []
+    return permutation
+
+
+def get_perturbation_list(present_configuration, previous_neighbourhood, single_sample_dictionary):
     perturbation_list = []
-    for variation in permutation_dictionary:
-        permutation = present_configuration[:]
-        for index, term in enumerate(permutation):
-            term += variation[index]
-            permutation[index] = term
-            if term < 0:
-                return
+    for variation in single_sample_dictionary:
+        permutation = get_unique_permutation(present_configuration, variation)
+        if len(permutation) == 0:
+            continue
+
         permutation_tuple = tuple(permutation)
         if not previous_neighbourhood.has_key(permutation_tuple):
             perturbation_list.append(permutation)
@@ -64,30 +96,30 @@ def get_perturbation_list(present_configuration, previous_neighbourhood):
 
 def optimize_from_given_start_config(present_configuration, present_payoff, over_time_power,
                                      over_time_constant, wait_time_constant, previous_neighbourhood):
-    perturbation_list = get_perturbation_list(present_configuration, previous_neighbourhood)
     best_variation = []
     value_for_best_perturbation = -sys.maxint - 1
-    # noinspection PyTypeChecker
-    for variation in perturbation_list:
-        perturbation_payoff = estimate_payoff(variation, show_up_prob, PER_SLOT_PROCESSING, wait_time_constant,
-                                              over_time_constant, over_time_power)
-        if perturbation_payoff > present_payoff:
-            best_variation = variation[:]
-            value_for_best_perturbation = perturbation_payoff
+    for single_sample_dictionary in permutation_dictionary_list:
+        perturbation_list = get_perturbation_list(present_configuration, previous_neighbourhood,
+                                                  single_sample_dictionary)
+        for variation in perturbation_list:
+            perturbation_payoff = estimate_payoff(variation, show_up_prob, PER_SLOT_PROCESSING, wait_time_constant,
+                                                  over_time_constant, over_time_power)
+            if perturbation_payoff > value_for_best_perturbation:
+                best_variation = variation[:]
+                value_for_best_perturbation = perturbation_payoff
 
-    if value_for_best_perturbation > -sys.maxint - 1:
-        if debug_logger == True:
-            print "LOGGER best_variation, value_for_best_perturbation, present_configuration, time", best_variation, value_for_best_perturbation, present_configuration, time.time()
-        return optimize_from_given_start_config(best_variation, value_for_best_perturbation, over_time_power,
-                                                over_time_constant, wait_time_constant,
-                                                previous_neighbourhood)
-    else:
-        return present_configuration, present_payoff
+        if value_for_best_perturbation > present_payoff:
+            if debug_logger:
+                print "LOGGER best_variation, value_for_best_perturbation, present_configuration, time", best_variation, value_for_best_perturbation, present_configuration, time.time()
+            return optimize_from_given_start_config(best_variation, value_for_best_perturbation, over_time_power,
+                                                    over_time_constant, wait_time_constant,
+                                                    previous_neighbourhood)
+    return present_configuration, present_payoff
 
 
-def execute(over_time_power, wait_time_constant, over_time_constant):
+def execute(over_time_power, wait_time_constant, over_time_constant, start_time):
     # Initialize list of perturbations
-    initialize_permutation_dictionary()
+    initialize_permutation_dictionary(20)
 
     heading = ["N", "PAYOFF"]
     for slot_number in range(NUMBER_OF_SLOTS): heading.append("Optimal Slot" + str(slot_number + 1))
@@ -106,7 +138,8 @@ def execute(over_time_power, wait_time_constant, over_time_constant):
                                          over_time_constant, over_time_power)
         optimal_config, optimal_payoff = optimize_from_given_start_config(initial_configuration, initial_payoff,
                                                                           over_time_power, over_time_constant,
-                                                                          wait_time_constant, {tuple(initial_configuration) : 1})
+                                                                          wait_time_constant,
+                                                                          {tuple(initial_configuration): 1})
 
         n_value_list.append(MAX_BOOKED - total_number_of_bookings)
         payoff_value_list.append(optimal_payoff)
@@ -115,7 +148,7 @@ def execute(over_time_power, wait_time_constant, over_time_constant):
         output_rows.append(row_value)
 
         print "\nFinal, Most Optimal Output for N ", MAX_BOOKED - total_number_of_bookings, "configuration and payoff ", \
-            optimal_config, optimal_payoff, time.time()
+            optimal_config, optimal_payoff, time.time() - start_time
         if optimal_payoff > highest_payoff:
             highest_payoff = optimal_payoff
             highest_payoff_config = optimal_config
@@ -125,42 +158,25 @@ def execute(over_time_power, wait_time_constant, over_time_constant):
     return n_value_list, payoff_value_list, output_rows, highest_payoff_config, highest_payoff
 
 
-# populate permutation terms in number of slots with values between -1, 0 ,1
-def populate_permutations(incomplete_list, recursive_level):
-    for term in range(-1, 2, 1):
-        permutation = incomplete_list[:]
-        permutation.append(term)
-        if recursive_level == NUMBER_OF_SLOTS - 1:
-            permutation_dictionary.append(permutation)
-        else:
-            populate_permutations(permutation, recursive_level + 1)
+def execute_across_n(over_time_power, wait_time_constant, over_time_constant):
+    initialize_permutation_dictionary(20, True)
 
+    initial_configuration = get_initial_configuration(0)
+    initial_payoff = estimate_payoff(initial_configuration, show_up_prob, PER_SLOT_PROCESSING, wait_time_constant,
+                                     over_time_constant, over_time_power)
 
-# Checks if the -1 term comes before the 1 term and filters out those permutations
-def filter_permutations():
-    global permutation_dictionary
-    filtered_permutation_list = []
-    for permutation in permutation_dictionary:
-        valid = True
-        non_zero_elements = False
-        for term in permutation:
-            if term == 1:
-                non_zero_elements = True
-                break
-            elif term == -1:
-                non_zero_elements = True
-                valid = False
-                break
-        if non_zero_elements and valid:
-            filtered_permutation_list.append(permutation)
-    permutation_dictionary = filtered_permutation_list
+    previous_neighbourhood = {tuple(initial_configuration): 1}
+
+    return optimize_from_given_start_config(initial_configuration, initial_payoff, over_time_power,
+                                            over_time_constant, wait_time_constant, previous_neighbourhood)
 
 
 # external entry point for optimal Schedule Calculation
 def set_params_and_get_optimal_schedule(MAX_BOOKED_PARAM, show_up_prob_PARAM, PER_SLOT_PROCESSING_PARAM,
                                         NUMBER_OF_SLOTS_PARAM, over_time_power, wait_time_constant, over_time_constant,
                                         TAG="TAG", debug_logger_param=False,
-                                        stop_at_optimal_N_for_level_by_level_calculation_param=False):
+                                        stop_at_optimal_N_for_level_by_level_calculation_param=False,
+                                        search_across_N=False):
     global MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob, N_CALCULATION_RANGE, stop_at_optimal_N_for_level_by_level_calculation, debug_logger, MINIMUM_BOOKED
     MAX_BOOKED = MAX_BOOKED_PARAM
     N_CALCULATION_RANGE = MAX_BOOKED_PARAM
@@ -171,16 +187,31 @@ def set_params_and_get_optimal_schedule(MAX_BOOKED_PARAM, show_up_prob_PARAM, PE
     stop_at_optimal_N_for_level_by_level_calculation = stop_at_optimal_N_for_level_by_level_calculation_param
     debug_logger = debug_logger_param
 
-    return get_optimal_schedule(over_time_constant, wait_time_constant, over_time_power, TAG)
+    if search_across_N:
+        return get_optimal_schedule_across_n(over_time_constant, wait_time_constant, over_time_power, TAG)
+    else:
+        return get_optimal_schedule(over_time_constant, wait_time_constant, over_time_power, TAG)
+
+
+# internal entry point for optimal Schedule Calculation Across N
+def get_optimal_schedule_across_n(over_time_constant=1.0, wait_time_constant=1.0, over_time_power=2, TAG="TAG"):
+    start_time = print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, time.time())
+
+    highest_payoff_config, highest_payoff = execute_across_n(over_time_power, wait_time_constant, over_time_constant)
+
+    print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, start_time)
+    print "\tFinal Output for Optimal N configuration and payoff ", highest_payoff_config, highest_payoff, "\n\n"
+
+    return highest_payoff_config, highest_payoff
 
 
 # internal entry point for optimal Schedule Calculation
 def get_optimal_schedule(over_time_constant=1.0, wait_time_constant=1.0, over_time_power=2, TAG="TAG"):
     start_time = print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, time.time())
 
-    n_value_list, payoff_value_list, output_rows, highest_payoff_config, highest_payoff = execute(over_time_power,
-                                                                                                  wait_time_constant,
-                                                                                                  over_time_constant)
+    n_value_list, payoff_value_list, output_rows, highest_payoff_config, highest_payoff = \
+        execute(over_time_power, wait_time_constant, over_time_constant, start_time)
+
     print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, start_time)
     print "\tFinal Output for Optimal N configuration and payoff ", highest_payoff_config, highest_payoff, "\n\n"
 
@@ -198,4 +229,4 @@ def get_optimal_schedule(over_time_constant=1.0, wait_time_constant=1.0, over_ti
 
 
 if __name__ == "__main__":
-    get_optimal_schedule(over_time_constant=1, wait_time_constant=1)
+    get_optimal_schedule_across_n()

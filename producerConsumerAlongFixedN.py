@@ -12,13 +12,13 @@ show_up_prob = 0.5
 
 MINIMUM_BOOKED = PER_SLOT_PROCESSING
 MINIMUM_SHOW = 0
-permutation_dictionary = []
+permutation_dictionary_list = []
 stop_at_optimal_N_for_level_by_level_calculation = False
 debug_logger = False
 
 
 def initialize_permutation_dictionary():
-    global permutation_dictionary
+    global permutation_dictionary_list
     if NUMBER_OF_SLOTS == 1:
         permutation_dictionary = []
     elif NUMBER_OF_SLOTS == 2:
@@ -87,7 +87,7 @@ def recursive_benefit_calculation(prob, gain, wait, loss, slot_distribution_list
 
 def get_perturbation_list(present_configuration, earlier_configuration):
     perturbation_list = []
-    for variation in permutation_dictionary:
+    for variation in permutation_dictionary_list:
         generate_unique_permutation(earlier_configuration, perturbation_list, present_configuration, variation)
     if debug_logger == True:
         print "LOGGER perturbation_list : ", perturbation_list
@@ -180,15 +180,15 @@ def populate_permutations(incomplete_list, recursive_level):
         permutation = incomplete_list[:]
         permutation.append(term)
         if recursive_level == NUMBER_OF_SLOTS - 1:
-            permutation_dictionary.append(permutation)
+            permutation_dictionary_list.append(permutation)
         else:
             populate_permutations(permutation, recursive_level + 1)
 
 
 def filter_permutations():
-    global permutation_dictionary
+    global permutation_dictionary_list
     filtered_permutation_list = []
-    for permutation in permutation_dictionary:
+    for permutation in permutation_dictionary_list:
         valid = True
         non_zero_elements = False
         for term in permutation:

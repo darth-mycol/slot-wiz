@@ -108,3 +108,11 @@ def set_parameters_and_estimate_payoff(show_up_prob_PARAM, per_slot_processing, 
 
     return configuration[:], estimate_payoff(configuration, show_up_prob_PARAM, per_slot_processing, wait_time_constant,
                                              over_time_constant)
+
+
+def test_estimate_payoff(configuration):
+    return configuration[:], estimate_payoff(configuration, 0.5, 67, 1, 1)
+
+
+if __name__ == "__main__":
+    test_estimate_payoff([400,0,0])
