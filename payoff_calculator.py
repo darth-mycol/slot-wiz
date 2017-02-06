@@ -28,14 +28,15 @@ def get_present_waiting(number_show_up, appointments_booked_in_slot, slot_show_u
         return slot_show_up_distribution.pmf(number_show_up)
 
 
-def estimate_loss(number_of_slots, per_slot_processing, show_up_prob, schedule, probability_dict,
+def estimate_loss(number_of_slots, per_slot_processing_list, show_up_prob, schedule, probability_dict,
                   over_time_power):
-    if len(schedule) != number_of_slots or number_of_slots < 1: raise Exception("len(schedule) != NUMBER_OF_SLOTS")
+    if len(schedule) != number_of_slots or number_of_slots < 1 or number_of_slots != len(per_slot_processing_list): raise Exception("len(schedule) != NUMBER_OF_SLOTS or number_of_slots != len(per_slot_processing_list)")
     max_possible_carry_over = 0
     total_wait_loss = 0
 
     all_theta_prob_dictionary_for_schedule = {}
     for slot_number in range(number_of_slots):
+        per_slot_processing = per_slot_processing_list[slot_number]
         booked_appointments = schedule[slot_number]
         if max_possible_carry_over + booked_appointments <= per_slot_processing:
             probability_dict[(slot_number, 0)] = 1
@@ -73,16 +74,17 @@ def estimate_loss(number_of_slots, per_slot_processing, show_up_prob, schedule, 
 
         probability_dict[(slot_number, 0)] = 1 - prob_of_at_least_one_over_load
 
+    last_slot_processing = per_slot_processing_list[-1]
     over_time_loss = 0
     for over_book in range(1, max_possible_carry_over + 1):
         theta = get_previous_waiting(over_book, number_of_slots - 1, probability_dict)
         over_time_loss += theta * math.pow(over_book, over_time_power)
 
         overbooked_wait_cascading_cost = 0
-        over_book_wait_loss = over_book - per_slot_processing
+        over_book_wait_loss = over_book - last_slot_processing
         while over_book_wait_loss > 0:
             overbooked_wait_cascading_cost += over_book_wait_loss
-            over_book_wait_loss -= per_slot_processing
+            over_book_wait_loss -= last_slot_processing
 
         total_wait_loss += overbooked_wait_cascading_cost * theta
 
@@ -90,29 +92,29 @@ def estimate_loss(number_of_slots, per_slot_processing, show_up_prob, schedule, 
 
 
 # external entry point
-def estimate_payoff(schedule, show_up_prob, per_slot_processing, wait_time_constant=1, over_time_constant=1,
-                    over_time_power=2):
+def estimate_payoff(schedule, show_up_prob, per_slot_processing_list, wait_time_constant=1.0, over_time_constant=1.0,
+                    over_time_power=2.0):
     gain = sum(schedule) * show_up_prob
-    wait_loss, over_time_loss = estimate_loss(len(schedule), per_slot_processing, show_up_prob,
+    wait_loss, over_time_loss = estimate_loss(len(schedule), per_slot_processing_list, show_up_prob,
                                               schedule, {(-1, 0): 1}, over_time_power)
 
     return gain - wait_time_constant * wait_loss - over_time_constant * over_time_loss
 
 
 # external entry point for payoff calculation
-def set_parameters_and_estimate_payoff(show_up_prob_PARAM, per_slot_processing, NUMBER_OF_SLOTS_PARAM, total_booking,
+def set_parameters_and_estimate_payoff(show_up_prob_PARAM, per_slot_processing_list, NUMBER_OF_SLOTS_PARAM, total_booking,
                                        wait_time_constant, over_time_constant):
     configuration = []
     for i in range(NUMBER_OF_SLOTS_PARAM, 0, -1):
         configuration.append((total_booking + (i - 1)) / NUMBER_OF_SLOTS_PARAM)
 
-    return configuration[:], estimate_payoff(configuration, show_up_prob_PARAM, per_slot_processing, wait_time_constant,
+    return configuration[:], estimate_payoff(configuration, show_up_prob_PARAM, per_slot_processing_list, wait_time_constant,
                                              over_time_constant)
 
 
 def test_estimate_payoff(configuration):
-    return configuration[:], estimate_payoff(configuration, 0.5, 67, 1, 1)
+    return configuration[:], estimate_payoff(configuration, 0.5, [67, 67, 66], 1, 1)
 
 
 if __name__ == "__main__":
-    test_estimate_payoff([400,0,0])
+    test_estimate_payoff([0,0,400])

@@ -7,6 +7,7 @@ import data_interaction_module
 import payoff_calculator
 
 SET_DEFAULT_PROB = 0.5
+NUMBER_OF_SLOTS = 3
 
 LABEL_BKGRND = "mediumseagreen"
 
@@ -15,7 +16,7 @@ class mycolapp_tk(Tkinter.Tk):
     def __init__(self, parent):
         Tkinter.Tk.__init__(self, parent)
         self.parent = parent
-        self.row_number = 0
+        self.row_number = -1
         self.initialize()
 
     def increment_row_number(self):
@@ -25,8 +26,13 @@ class mycolapp_tk(Tkinter.Tk):
     def initialize(self):
         self.grid()
 
-        plabel = Tkinter.Label(self, text=u"Probability : ", anchor="w", fg="white", bg=LABEL_BKGRND)
-        plabel.grid(column=0, row=self.row_number, columnspan=1, sticky='EW', padx=5, pady=8)
+        self.add_row_label(u"AIIMS Scheduler - ")
+        self.add_row_label(u"Universal Variables - ")
+
+        ##################
+
+        plabel = Tkinter.Label(self, text=u"Probability of patient show : ", anchor="w", fg="white", bg=LABEL_BKGRND)
+        plabel.grid(column=0, row=self.increment_row_number(), columnspan=1, sticky='EW', padx=5, pady=8)
         self.pEntryVariable = Tkinter.StringVar()
         self.pEntry = Tkinter.Entry(self, textvariable=self.pEntryVariable)
         self.pEntry.grid(column=1, row=self.row_number, sticky='EW', padx=5, pady=8)
@@ -34,16 +40,86 @@ class mycolapp_tk(Tkinter.Tk):
 
         ###################
 
-        capacityLabel = Tkinter.Label(self, text=u"Capacity Per Slot : ", anchor="w", fg="white", bg=LABEL_BKGRND)
-        capacityLabel.grid(column=0, row=self.increment_row_number(), columnspan=1, sticky='EW', padx=5, pady=8)
-        self.capacityEntryVariable = Tkinter.StringVar()
-        self.capacityEntry = Tkinter.Entry(self, textvariable=self.capacityEntryVariable)
-        self.capacityEntry.grid(column=1, row=self.row_number, sticky='EW', padx=5, pady=8)
-        self.capacityEntryVariable.set(5)
+        wait_time_constant_label = Tkinter.Label(self, text=u"Wait Time Cost : ", anchor="w", fg="white",
+                                                 bg=LABEL_BKGRND)
+        wait_time_constant_label.grid(column=0, row=self.increment_row_number(), columnspan=1, sticky='EW', padx=5,
+                                      pady=8)
+        self.wait_time_constant_variable = Tkinter.StringVar()
+        self.wait_time_constant_entry = Tkinter.Entry(self, textvariable=self.wait_time_constant_variable)
+        self.wait_time_constant_entry.grid(column=1, row=self.row_number, sticky='EW', padx=5, pady=8)
+        self.wait_time_constant_variable.set(1)
+
+        ####################
+
+        over_time_constant_label = Tkinter.Label(self, text=u"Over Time Cost : ", anchor="w", fg="white",
+                                                 bg=LABEL_BKGRND)
+        over_time_constant_label.grid(column=0, row=self.increment_row_number(), columnspan=1, sticky='EW', padx=5,
+                                      pady=8)
+        self.over_time_constant_variable = Tkinter.StringVar()
+        self.over_time_constant_entry = Tkinter.Entry(self, textvariable=self.over_time_constant_variable)
+        self.over_time_constant_entry.grid(column=1, row=self.row_number, sticky='EW', padx=5, pady=8)
+        self.over_time_constant_variable.set(1)
 
         ###################
 
-        scheduleLabel = Tkinter.Label(self, text=u"Schedule : ", anchor="w", fg="white", bg=LABEL_BKGRND)
+        over_time_power_label = Tkinter.Label(self, text=u"Impact of Over Time : ", anchor="w", fg="white",
+                                              bg=LABEL_BKGRND)
+        over_time_power_label.grid(column=0, row=self.increment_row_number(), columnspan=1, sticky='EW', padx=5,
+                                   pady=8)
+        self.over_time_power_variable = Tkinter.StringVar()
+        self.over_time_power_entry = Tkinter.Entry(self, textvariable=self.over_time_power_variable)
+        self.over_time_power_entry.grid(column=1, row=self.row_number, sticky='EW', padx=5, pady=8)
+        self.over_time_power_variable.set(2)
+
+        ###################
+
+        slots_label = Tkinter.Label(self, text=u"Number of Slots : ", anchor="w", fg="white", bg=LABEL_BKGRND)
+        slots_label.grid(column=0, row=self.increment_row_number(), columnspan=1, sticky='EW', padx=5, pady=1)
+
+        self.radioVariable = Tkinter.IntVar()
+        self.radioVariable.set(3)
+        MODES = [
+            ("One", 1),
+            ("Two", 2),
+            ("Three", 3)
+        ]
+        for txt, num in MODES:
+            if num != 1: self.increment_row_number()
+            b = Tkinter.Radiobutton(self, text=txt, variable=self.radioVariable, value=num, foreground="white",
+                                    bg=LABEL_BKGRND, indicatoron=False)
+            b.grid(column=1, row=self.row_number, sticky='EW', padx=5, pady=1)
+
+        ###################
+
+        self.add_row_label(u"User Generated Variables - ")
+
+        self.increment_row_number()
+        self.add_column_label("Hour1", column=1)
+        self.add_column_label("Hour2", column=2)
+        self.add_column_label("Hour3", column=3)
+
+        capacityLabel = Tkinter.Label(self, text=u"Capacity Per Hour Per Slot : ", anchor="w", fg="white",
+                                      bg=LABEL_BKGRND)
+        capacityLabel.grid(column=0, row=self.increment_row_number(), columnspan=1, sticky='EW', padx=5, pady=8)
+        self.capacityFirstEntryVariable = Tkinter.StringVar()
+        self.capacityFirstEntry = Tkinter.Entry(self, textvariable=self.capacityFirstEntryVariable)
+        self.capacityFirstEntry.grid(column=1, row=self.row_number, sticky='E', padx=5, pady=8)
+        self.capacityFirstEntryVariable.set(3)
+
+        self.capacitySecondEntryVariable = Tkinter.StringVar()
+        self.capacitySecondEntry = Tkinter.Entry(self, textvariable=self.capacitySecondEntryVariable)
+        self.capacitySecondEntry.grid(column=2, row=self.row_number)
+        self.capacitySecondEntryVariable.set(3)
+
+        self.capacityThirdEntryVariable = Tkinter.StringVar()
+        self.capacityThirdEntry = Tkinter.Entry(self, textvariable=self.capacityThirdEntryVariable)
+        self.capacityThirdEntry.grid(column=3, row=self.row_number, sticky='W', padx=5, pady=8)
+        self.capacityThirdEntryVariable.set(2)
+
+        ###################
+
+        scheduleLabel = Tkinter.Label(self, text=u"Patient Booking per hour : ", anchor="w", fg="white",
+                                      bg=LABEL_BKGRND)
         scheduleLabel.grid(column=0, row=self.increment_row_number(), columnspan=1, sticky='EW', padx=5, pady=8)
 
         self.scheduleEntryVariable = Tkinter.StringVar()
@@ -63,13 +139,16 @@ class mycolapp_tk(Tkinter.Tk):
 
         ###################
 
-        button = Tkinter.Button(self, text=u"Compute Payoff", command=self.OnComputePayoffClick)
+        button = Tkinter.Button(self, text=u"Calculate Payoff", command=self.OnComputePayoffClick)
         button.grid(column=0, row=self.increment_row_number())
 
         self.payoffVariable = Tkinter.StringVar()
         label = Tkinter.Label(self, textvariable=self.payoffVariable, anchor="w", fg="white", bg=LABEL_BKGRND)
-
         label.grid(column=0, row=self.increment_row_number(), columnspan=2, sticky='EW', padx=5, pady=8)
+        self.payoffVariable.set("Calculated Pay Off : ")
+
+        ####################
+        self.add_row_label(u"System Generated Variables - ")
 
         total_capacity_label = Tkinter.Label(self, text=u"Total Capacity : ", anchor="w", fg="white", bg=LABEL_BKGRND)
         total_capacity_label.grid(column=0, row=self.increment_row_number(), columnspan=1, sticky='EW', padx=5, pady=8)
@@ -79,7 +158,7 @@ class mycolapp_tk(Tkinter.Tk):
         self.total_capacity_entry.grid(column=1, row=self.row_number, sticky='W', padx=5, pady=8)
         self.total_capacity_entry_variable.set(201)
 
-        lookup_button = Tkinter.Button(self, text=u"Total Capacity Solution", command=self.OnPressEnter)
+        lookup_button = Tkinter.Button(self, text=u"Optimal Solution", command=self.OnPressOptimalSolution)
         lookup_button.grid(column=0, row=self.increment_row_number())
 
         self.optimalVariable = Tkinter.StringVar()
@@ -87,6 +166,7 @@ class mycolapp_tk(Tkinter.Tk):
                                      anchor="w", fg="white", bg=LABEL_BKGRND)
 
         lookup_label.grid(column=0, row=self.increment_row_number(), columnspan=4, sticky='EW', padx=5, pady=8)
+        self.optimalVariable.set("Calculated Pay Off : ")
 
         self.grid_columnconfigure(0, weight=1)
         self.resizable(True, False)
@@ -96,25 +176,61 @@ class mycolapp_tk(Tkinter.Tk):
         self.pEntry.focus_set()
         self.pEntry.selection_range(0, Tkinter.END)
 
+    def add_row_label(self, txt):
+        headinglabel = Tkinter.Label(self, text=txt, anchor="w", fg="white", bg="lightseagreen")
+        headinglabel.grid(column=0, row=self.increment_row_number(), sticky='EW', columnspan=4, padx=4, pady=6)
+
+    def add_column_label(self, txt, column):
+        headinglabel = Tkinter.Label(self, text=txt, anchor="w", fg="grey", bg="lavender")
+        headinglabel.grid(column=column, row=self.row_number, sticky='EW', columnspan=4, padx=4, pady=0)
+
     def OnComputePayoffClick(self):
         try:
-            schedule = [int(self.scheduleEntryVariable.get()), int(self.scheduleSecondEntryVariable.get()),
-                        int(self.scheduleThirdEntryVariable.get())]
+            wait_time_constant = float(self.wait_time_constant_variable.get())
+            over_time_constant = float(self.over_time_constant_variable.get())
+            over_time_power = float(self.over_time_power_variable.get())
+            per_slot_processing_list, schedule = self.get_schedule_capacity()
             payoff = payoff_calculator.estimate_payoff(schedule, float(self.pEntryVariable.get()),
-                                                       int(self.capacityEntryVariable.get()))
+                                                       per_slot_processing_list, wait_time_constant,
+                                                       over_time_constant, over_time_power)
             self.payoffVariable.set("Calculated Pay Off : " + str(payoff))
             self.pEntry.focus_set()
             self.pEntry.selection_range(0, Tkinter.END)
         except Exception:
             self.payoffVariable.set("Could Not Compute Payoff. Please check parameter values.")
 
-    def OnPressEnter(self):
+    def get_schedule_capacity(self):
+        if self.radioVariable.get() == 3:
+            schedule = [int(self.scheduleEntryVariable.get()), int(self.scheduleSecondEntryVariable.get()),
+                        int(self.scheduleThirdEntryVariable.get())]
+            per_slot_processing_list = [int(self.capacityFirstEntryVariable.get()),
+                                        int(self.capacitySecondEntryVariable.get()),
+                                        int(self.capacityThirdEntryVariable.get())]
+        elif self.radioVariable.get() == 2:
+            schedule = [int(self.scheduleEntryVariable.get()), int(self.scheduleSecondEntryVariable.get())]
+            per_slot_processing_list = [int(self.capacityFirstEntryVariable.get()),
+                                        int(self.capacitySecondEntryVariable.get())]
+        elif self.radioVariable.get() == 1:
+            schedule = [int(self.scheduleEntryVariable.get())]
+            per_slot_processing_list = [int(self.capacityFirstEntryVariable.get())]
+        else:
+            raise Exception("Radio Button Option Not Supported")
+        return per_slot_processing_list, schedule
+
+    def OnPressOptimalSolution(self):
         try:
-            schedule, payoff = data_interaction_module.look_up_dictionary(float(self.pEntryVariable.get()), 3,
-                                                                          int(self.total_capacity_entry_variable.get()))
+            wait_time_constant = float(self.wait_time_constant_variable.get())
+            over_time_constant = float(self.over_time_constant_variable.get())
+            over_time_power = float(self.over_time_power_variable.get())
+
+            schedule, payoff = data_interaction_module.look_up_dictionary(float(self.pEntryVariable.get()),
+                                                                          self.radioVariable.get(),
+                                                                          int(self.total_capacity_entry_variable.get()),
+                                                                          over_time_constant, wait_time_constant,
+                                                                          over_time_power)
             self.optimalVariable.set("Calculated Pay Off : " + str(payoff) + " and optimal schedule : " + str(schedule))
-            self.pEntry.focus_set()
-            self.pEntry.selection_range(0, Tkinter.END)
+            self.total_capacity_entry.focus_set()
+            self.total_capacity_entry.selection_range(0, Tkinter.END)
         except Exception:
             self.optimalVariable.set("Could Not Compute Optimal Payoff. Please check parameter values.")
 

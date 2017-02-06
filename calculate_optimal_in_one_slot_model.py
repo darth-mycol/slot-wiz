@@ -60,6 +60,7 @@ def get_optimal_for_probability_list():
     probability_list.append(0.99)
 
     # Initialize Execution Params
+    per_slot_processing_list = [67, 67, 66]
     number_of_slots = 3
     over_time_constant = 1
     wait_time_constant = 1
@@ -75,7 +76,7 @@ def get_optimal_for_probability_list():
         expected_cost, optimal_N = calculate_optimal_n_and_cost()
 
         distributed_configuration, payoff = payoff_calculator.set_parameters_and_estimate_payoff(
-            show_up_prob_PARAM=probability, per_slot_processing=PER_SLOT_PROCESSING / number_of_slots,
+            show_up_prob_PARAM=probability, per_slot_processing_list=per_slot_processing_list,
             NUMBER_OF_SLOTS_PARAM=number_of_slots, total_booking=optimal_N, wait_time_constant=wait_time_constant,
             over_time_constant=over_time_constant)
 

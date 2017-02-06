@@ -37,7 +37,8 @@ def trythis():
         n = []
         for s1 in s:
             c1 = list(s1)
-            payoff = estimate_payoff(c1, show_up_prob_PARAM, per_slot_processing, wait_time_constant,
+            per_slot_processing_list = [1 for x in range(12)]
+            payoff = estimate_payoff(c1, show_up_prob_PARAM, per_slot_processing_list, wait_time_constant,
                                      over_time_constant, over_time_power)
             print over_time_power, c1, payoff
             if payoff > k:

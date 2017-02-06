@@ -2,7 +2,7 @@ import cmd
 import time
 
 import data_interaction_module
-import optimal_schedule_calculator
+import entry_optimal_schedule_calculator
 import payoff_calculator
 
 # noinspection PyUnusedLocal
@@ -63,15 +63,16 @@ class Interface(cmd.Cmd):
 
     def do_calculate_payoff(self, arg):
         'Calculate Payoff using present Parameter Configuration'
-        payoff = payoff_calculator.estimate_payoff(self.schedule, self.p, self.capacity, self.wait_time_constant,
+        payoff = payoff_calculator.estimate_payoff(self.schedule, self.p, [self.capacity, self.capacity, self.capacity],
+                                                   self.wait_time_constant,
                                                    self.over_time_constant, self.over_time_power)
         print "Calculated Pay Off : ", payoff
         self.print_time_taken()
 
     def do_calculate_optimal_schedule(self, arg):
-        optimal_schedule_calculator.compute_optimal_schedule([(self.wait_time_constant, self.over_time_constant)],
-                                                             self.number_of_slots, [self.over_time_power],
-                                                             self.capacity, [self.p])
+        entry_optimal_schedule_calculator.compute_optimal_schedule([(self.wait_time_constant, self.over_time_constant)],
+                                                                   self.number_of_slots, [self.over_time_power],
+                                                                   [self.capacity, self.capacity, self.capacity], [self.p])
         self.do_reinitialize_data(self)
         self.print_time_taken()
 
