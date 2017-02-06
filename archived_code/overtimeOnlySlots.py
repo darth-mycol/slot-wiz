@@ -2,6 +2,8 @@ import csv
 
 import scipy.stats as ss
 
+####DELETE this if unused
+
 MAX_BOOKED = 218
 MINIMUM_BOOKED = 100
 

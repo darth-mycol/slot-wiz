@@ -13,7 +13,7 @@ show_up_prob = 0.5
 N_CALCULATION_RANGE = MAX_BOOKED
 MINIMUM_BOOKED = PER_SLOT_PROCESSING
 stop_at_optimal_N_for_level_by_level_calculation = False
-debug_logger = False
+debug_logger = True
 
 permutation_dictionary_list = []
 
@@ -55,8 +55,8 @@ def initialize_permutation_dictionary(sample_size, permutation_across_n=False):
 
 
 def print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, previous_time):
-    print "\n********Parameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p, Over_Time_Power, over_time_constant, wait_time_constant, TAG, processing_time*******\n", \
-        MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob, over_time_power, over_time_constant, wait_time_constant, TAG, time.time() - previous_time, "\n"
+    #print "\n********Parameters : MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, p, Over_Time_Power, over_time_constant, wait_time_constant, TAG, processing_time*******\n", \
+    #    MAX_BOOKED, PER_SLOT_PROCESSING, NUMBER_OF_SLOTS, show_up_prob, over_time_power, over_time_constant, wait_time_constant, TAG, time.time() - previous_time, "\n"
     return time.time()
 
 
@@ -200,7 +200,7 @@ def get_optimal_schedule_across_n(over_time_constant=1.0, wait_time_constant=1.0
     highest_payoff_config, highest_payoff = execute_across_n(over_time_power, wait_time_constant, over_time_constant)
 
     print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, start_time)
-    print "\tFinal Output for Optimal N configuration and payoff ", highest_payoff_config, highest_payoff, "\n\n"
+    #print "\tFinal Output for Optimal N configuration and payoff ", highest_payoff_config, highest_payoff, "\n\n"
 
     return highest_payoff_config, highest_payoff
 

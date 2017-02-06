@@ -90,7 +90,7 @@ def estimate_loss(number_of_slots, per_slot_processing, show_up_prob, schedule, 
 
 
 # external entry point
-def estimate_payoff(schedule, show_up_prob, per_slot_processing, wait_time_constant, over_time_constant,
+def estimate_payoff(schedule, show_up_prob, per_slot_processing, wait_time_constant=1, over_time_constant=1,
                     over_time_power=2):
     gain = sum(schedule) * show_up_prob
     wait_loss, over_time_loss = estimate_loss(len(schedule), per_slot_processing, show_up_prob,
