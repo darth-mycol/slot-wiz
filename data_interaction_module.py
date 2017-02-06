@@ -18,8 +18,14 @@ data_frame_dictionary = {}
 def add_to_dictionary(key, df_list):
     global data_frame_dictionary
     if key in data_frame_dictionary.keys():
-        df_list.append(data_frame_dictionary[key])
-    data_frame_dictionary[key] = pd.concat(df_list)
+        for df in df_list:
+            data_frame_dictionary[key].append(df, ignore_index=True)
+    else:
+        initial = df_list[0]
+        for index in range(1, len(df_list)):
+            df = df_list[index]
+            initial = initial.append(df, ignore_index=True)
+            data_frame_dictionary[key] = initial
 
 
 # a consumer module will them come looking with an N.
@@ -29,7 +35,8 @@ def add_to_dictionary(key, df_list):
 def look_up_dictionary(p, number_of_slots, N, over_time_constant=1, wait_time_constant=1, over_time_power=2):
     global data_frame_dictionary
     if number_of_slots not in data_frame_dictionary.keys():
-        raise Exception("Data Frame Not Found for Provided number of slots")
+        "The payoff is not previously calculated for given number of slots.\nDo you want to re-initialize?"
+        return None, None
 
     df = data_frame_dictionary[number_of_slots]
     row = df[df.probability == p][df.over_time_constant == over_time_constant][
@@ -43,8 +50,8 @@ def look_up_dictionary(p, number_of_slots, N, over_time_constant=1, wait_time_co
     row = row[0:1]
     schedule = []
     for slot_number in range(number_of_slots):
-        schedule.append(row[SLOT_COLUMN_NAME + str(slot_number + 1)][0])
-    return schedule, row[PAY_OFF][0]
+        schedule.append(list(row[SLOT_COLUMN_NAME + str(slot_number + 1)])[0])
+    return schedule, list(row[PAY_OFF])[0]
 
 
 def initialize():
