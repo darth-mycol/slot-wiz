@@ -1,7 +1,7 @@
 import csv
 import time
 
-import calculate_optimal_in_one_slot_model as range_calculator
+import one_slot_model_calculate_optimal as range_calculator
 import slot_distribution_calculator
 
 
@@ -33,7 +33,8 @@ def get_boundary_dict(probability_list, total_processing):
 
 
 def get_loss_constant_pairs():
-    return [(1, 1), (0.5, 1.5), (1.5, 1.5)]
+    return [(0, 1), (0, 1.5)]
+    # return [(0, 1), (1, 1), (0.5, 1.5), (1.5, 1.5), (0, 1.5)]
 
 
 # External Entry Point
@@ -70,18 +71,20 @@ def compute_optimal_schedule(loss_constant_pair_list, number_of_slots, over_time
 
 
 if __name__ == "__main__":
-    start_time = time.time()
-
-    per_slot_processing_list = [67, 67, 66]
     number_of_slots = 3
+    total_capacity = 200
 
+    start_time = time.time()
     loss_constant_pair_list = get_loss_constant_pairs()
     over_time_power_list = get_over_time_power_list()  # Get list of probability to run over
     probability_list = get_prob_list()
+    per_slot_processing_list = slot_distribution_calculator.get_initial_configuration(number_of_slots, total_capacity)
 
     # noinspection PyArgumentList
-    TAG = "CAPACITY_" + str(sum(per_slot_processing_list)) + \
+    TAG = "CAPACITY_" + str(total_capacity) + \
           time.strftime("_%b_%d_%H_%M_", time.strptime(time.ctime()))
+
     compute_optimal_schedule(loss_constant_pair_list, number_of_slots, over_time_power_list, per_slot_processing_list,
-                             probability_list, True, TAG)
+                             probability_list, False, TAG)
+
     print time.time() - start_time

@@ -53,15 +53,15 @@ def initialize_permutation_dictionary(sample_size, permutation_across_n=False):
 
 
 def print_parameters(TAG, over_time_constant, over_time_power, wait_time_constant, previous_time):
-    # print "\n********Parameters : MAX_BOOKED, NUMBER_OF_SLOTS, p, Over_Time_Power, over_time_constant, wait_time_constant, TAG, processing_time*******\n", \
-    #    MAX_BOOKED, NUMBER_OF_SLOTS, show_up_prob, over_time_power, over_time_constant, wait_time_constant, TAG, time.time() - previous_time, "\n"
+    print "\n********Parameters : MAX_BOOKED, NUMBER_OF_SLOTS, p, Over_Time_Power, over_time_constant, wait_time_constant, TAG, processing_time*******\n", \
+       MAX_BOOKED, NUMBER_OF_SLOTS, show_up_prob, over_time_power, over_time_constant, wait_time_constant, TAG, time.time() - previous_time, "\n"
     return time.time()
 
 
-def get_initial_configuration(iterator):
+def get_initial_configuration(number_of_slots, booked_to_be_distributed, iterator=0):
     schedule = []
-    for i in range(NUMBER_OF_SLOTS, 0, -1):
-        schedule.append((MAX_BOOKED + (i - 1) - iterator) / NUMBER_OF_SLOTS)
+    for i in range(number_of_slots, 0, -1):
+        schedule.append((booked_to_be_distributed + (i - 1) - iterator) / number_of_slots)
     return schedule
 
 
@@ -133,7 +133,7 @@ def execute(over_time_power, wait_time_constant, over_time_constant, start_time,
     max_per_slot_processing = max(per_slot_processing_list)
     for total_number_of_bookings in range(0, min(MAX_BOOKED - NUMBER_OF_SLOTS * max_per_slot_processing + 1,
                                                  N_CALCULATION_RANGE)):
-        initial_configuration = get_initial_configuration(total_number_of_bookings)
+        initial_configuration = get_initial_configuration(NUMBER_OF_SLOTS, MAX_BOOKED, total_number_of_bookings)
         initial_payoff = estimate_payoff(initial_configuration, show_up_prob, per_slot_processing_list,
                                          wait_time_constant, over_time_constant, over_time_power)
         optimal_config, optimal_payoff = optimize_from_given_start_config(initial_configuration, initial_payoff,
@@ -162,7 +162,7 @@ def execute(over_time_power, wait_time_constant, over_time_constant, start_time,
 def execute_across_n(per_slot_processing_list, over_time_power, wait_time_constant, over_time_constant):
     initialize_permutation_dictionary(20, True)
 
-    initial_configuration = get_initial_configuration(0)
+    initial_configuration = get_initial_configuration(NUMBER_OF_SLOTS, MAX_BOOKED)
     initial_payoff = estimate_payoff(initial_configuration, show_up_prob, per_slot_processing_list, wait_time_constant,
                                      over_time_constant, over_time_power)
 

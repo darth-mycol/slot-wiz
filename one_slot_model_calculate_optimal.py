@@ -4,8 +4,8 @@ import scipy.stats as ss
 
 import payoff_calculator
 
-PER_SLOT_PROCESSING = 201
-MAX_BOOKED = 377
+PER_SLOT_PROCESSING = 200
+MAX_BOOKED = 375
 show_up_prob = 0.5
 
 MINIMUM_BOOKED = PER_SLOT_PROCESSING

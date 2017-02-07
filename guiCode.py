@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
 import Tkinter
@@ -6,7 +6,13 @@ import Tkinter
 import data_interaction_module
 import payoff_calculator
 
-SET_DEFAULT_PROB = 0.5
+ALLOWED_OVER_TIME_POWER = [1.0, 1.5, 2.0]
+
+ALLOWED_OVER_TIME_VALUES = [1.0, 1.5]
+
+ALLOWED_WAIT_TIME_VALUES = [0.0, 0.5, 1.0, 1.5]
+
+SET_DEFAULT_PROB = 0.55
 NUMBER_OF_SLOTS = 3
 
 LABEL_BKGRND = "mediumseagreen"
@@ -91,17 +97,17 @@ class mycolapp_tk(Tkinter.Tk):
         self.capacityFirstEntryVariable = Tkinter.StringVar()
         self.capacityFirstEntry = Tkinter.Entry(self, textvariable=self.capacityFirstEntryVariable)
         self.capacityFirstEntry.grid(column=1, row=self.row_number, sticky='E', padx=5, pady=8)
-        self.capacityFirstEntryVariable.set(3)
+        self.capacityFirstEntryVariable.set(67)
 
         self.capacitySecondEntryVariable = Tkinter.StringVar()
         self.capacitySecondEntry = Tkinter.Entry(self, textvariable=self.capacitySecondEntryVariable)
         self.capacitySecondEntry.grid(column=2, row=self.row_number)
-        self.capacitySecondEntryVariable.set(3)
+        self.capacitySecondEntryVariable.set(67)
 
         self.capacityThirdEntryVariable = Tkinter.StringVar()
         self.capacityThirdEntry = Tkinter.Entry(self, textvariable=self.capacityThirdEntryVariable)
         self.capacityThirdEntry.grid(column=3, row=self.row_number, sticky='W', padx=5, pady=8)
-        self.capacityThirdEntryVariable.set(2)
+        self.capacityThirdEntryVariable.set(66)
 
         ###################
 
@@ -110,17 +116,17 @@ class mycolapp_tk(Tkinter.Tk):
         self.scheduleEntryVariable = Tkinter.StringVar()
         self.scheduleEntry = Tkinter.Entry(self, textvariable=self.scheduleEntryVariable)
         self.scheduleEntry.grid(column=1, row=self.row_number, sticky='E', padx=5, pady=8)
-        self.scheduleEntryVariable.set(5)
+        self.scheduleEntryVariable.set(129)
 
         self.scheduleSecondEntryVariable = Tkinter.StringVar()
         self.scheduleSecondEntry = Tkinter.Entry(self, textvariable=self.scheduleSecondEntryVariable)
         self.scheduleSecondEntry.grid(column=2, row=self.row_number)
-        self.scheduleSecondEntryVariable.set(5)
+        self.scheduleSecondEntryVariable.set(125)
 
         self.scheduleThirdEntryVariable = Tkinter.StringVar()
         self.scheduleThirdEntry = Tkinter.Entry(self, textvariable=self.scheduleThirdEntryVariable)
         self.scheduleThirdEntry.grid(column=3, row=self.row_number, sticky='W', padx=5, pady=8)
-        self.scheduleThirdEntryVariable.set(5)
+        self.scheduleThirdEntryVariable.set(116)
 
         ###################
 
@@ -172,21 +178,6 @@ class mycolapp_tk(Tkinter.Tk):
         headinglabel = Tkinter.Label(self, text=txt, anchor="w", fg="grey", bg="lavender")
         headinglabel.grid(column=column, row=self.row_number, sticky='EW', columnspan=4, padx=4, pady=0)
 
-    def OnComputePayoffClick(self):
-        try:
-            wait_time_constant = float(self.wait_time_constant_variable.get())
-            over_time_constant = float(self.over_time_constant_variable.get())
-            over_time_power = float(self.over_time_power_variable.get())
-            per_slot_processing_list, schedule = self.get_schedule_capacity()
-            payoff = payoff_calculator.estimate_payoff(schedule, float(self.pEntryVariable.get()),
-                                                       per_slot_processing_list, wait_time_constant,
-                                                       over_time_constant, over_time_power)
-            self.payoffVariable.set("Calculated Pay Off : " + str(payoff))
-            self.pEntry.focus_set()
-            self.pEntry.selection_range(0, Tkinter.END)
-        except Exception:
-            self.payoffVariable.set("Could Not Compute Payoff. Please check parameter values.")
-
     def get_schedule_capacity(self):
         if self.radioVariable.get() == 3:
             schedule = [int(self.scheduleEntryVariable.get()), int(self.scheduleSecondEntryVariable.get()),
@@ -203,24 +194,81 @@ class mycolapp_tk(Tkinter.Tk):
             per_slot_processing_list = [int(self.capacityFirstEntryVariable.get())]
         else:
             raise Exception("Radio Button Option Not Supported")
+        for capacity in per_slot_processing_list:
+            if capacity < 1:
+                raise Exception("Capacity per slot should be greater than 0")
         return per_slot_processing_list, schedule
+
+    def OnComputePayoffClick(self):
+        try:
+            probability = float(self.pEntryVariable.get())
+            if probability > 1 or probability < 0:
+                self.payoffVariable.set("Could Not Compute Optimal Payoff. Probability should between 0 and 1")
+                self.pEntry.focus_set()
+                self.pEntry.selection_range(0, Tkinter.END)
+                return
+
+            wait_time_constant = float(self.wait_time_constant_variable.get())
+            over_time_constant = float(self.over_time_constant_variable.get())
+            over_time_power = float(self.over_time_power_variable.get())
+            per_slot_processing_list, schedule = self.get_schedule_capacity()
+            payoff = payoff_calculator.estimate_payoff(schedule, probability,
+                                                       per_slot_processing_list, wait_time_constant,
+                                                       over_time_constant, over_time_power)
+            self.payoffVariable.set("Calculated Pay Off : " + str(payoff))
+        except Exception:
+            self.payoffVariable.set("Could Not Compute Payoff. Please check parameter values.")
+        self.pEntry.focus_set()
+        self.pEntry.selection_range(0, Tkinter.END)
 
     def OnPressOptimalSolution(self):
         try:
             wait_time_constant = float(self.wait_time_constant_variable.get())
             over_time_constant = float(self.over_time_constant_variable.get())
             over_time_power = float(self.over_time_power_variable.get())
+            probability = float(self.pEntryVariable.get())
+        except Exception:
+            self.optimalVariable.set("Could Not Compute Optimal Payoff. Please check parameter values.")
+            return
 
-            schedule, payoff = data_interaction_module.look_up_dictionary(float(self.pEntryVariable.get()),
+        if wait_time_constant not in ALLOWED_WAIT_TIME_VALUES:
+            self.optimalVariable.set(
+                "Could Not Compute Optimal Payoff. Wait Time cost can only be " + str(ALLOWED_WAIT_TIME_VALUES))
+            self.wait_time_constant_entry.focus_set()
+            self.wait_time_constant_entry.selection_range(0, Tkinter.END)
+            return
+
+        if over_time_constant not in ALLOWED_OVER_TIME_VALUES:
+            self.optimalVariable.set(
+                "Could Not Compute Optimal Payoff. Over Time cost can only be " + str(ALLOWED_OVER_TIME_VALUES))
+            self.over_time_constant_entry.focus_set()
+            self.over_time_constant_entry.selection_range(0, Tkinter.END)
+            return
+
+        if over_time_power not in ALLOWED_OVER_TIME_POWER:
+            self.optimalVariable.set(
+                "Could Not Compute Optimal Payoff. Over Time Impact can only be " + str(ALLOWED_OVER_TIME_POWER))
+            self.over_time_constant_entry.focus_set()
+            self.over_time_constant_entry.selection_range(0, Tkinter.END)
+            return
+
+        if probability > 1 or probability < 0:
+            self.optimalVariable.set("Could Not Compute Optimal Payoff. Probability should between 0 and 1")
+            self.pEntry.focus_set()
+            self.pEntry.selection_range(0, Tkinter.END)
+            return
+
+        try:
+            schedule, payoff = data_interaction_module.look_up_dictionary(probability,
                                                                           self.radioVariable.get(),
                                                                           int(self.total_capacity_entry_variable.get()),
                                                                           over_time_constant, wait_time_constant,
                                                                           over_time_power)
             self.optimalVariable.set("Calculated Pay Off : " + str(payoff) + " and optimal schedule : " + str(schedule))
-            self.total_capacity_entry.focus_set()
-            self.total_capacity_entry.selection_range(0, Tkinter.END)
         except Exception:
             self.optimalVariable.set("Could Not Compute Optimal Payoff. Please check parameter values.")
+        self.total_capacity_entry.focus_set()
+        self.total_capacity_entry.selection_range(0, Tkinter.END)
 
 
 if __name__ == "__main__":
