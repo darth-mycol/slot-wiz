@@ -1,4 +1,5 @@
 import csv
+import math
 
 import scipy.stats as ss
 
@@ -12,14 +13,14 @@ MINIMUM_BOOKED = PER_SLOT_PROCESSING
 MINIMUM_SHOW = 0
 
 
-def calculate_cost(probability, show_up):
+def calculate_cost(probability, show_up, over_time_power):
     if show_up < PER_SLOT_PROCESSING:
         return show_up * probability
-    cost = (show_up - (show_up - PER_SLOT_PROCESSING) * (show_up - PER_SLOT_PROCESSING))
+    cost = (show_up - math.pow(show_up - PER_SLOT_PROCESSING, over_time_power))
     return cost * probability
 
 
-def calculate_optimal_n_and_cost():
+def calculate_optimal_n_and_cost(over_time_power=2):
     expected_cost = 0
     optimal_N = 0
     for booked in range(MINIMUM_BOOKED, MAX_BOOKED + 1):
@@ -27,7 +28,7 @@ def calculate_optimal_n_and_cost():
         booked_cost = 0
         for show_up in range(MINIMUM_SHOW, booked + 1):
             prob = distribution.pmf(show_up)
-            cost = calculate_cost(prob, show_up)
+            cost = calculate_cost(prob, show_up, over_time_power)
             booked_cost += cost
 
         if booked_cost > expected_cost:
@@ -38,14 +39,14 @@ def calculate_optimal_n_and_cost():
 
 
 # entry point
-def set_parameters_and_get_optimal_n(PER_SLOT_PROCESSING_PARAM, MAX_BOOKED_PARAM, p_PARAM):
+def set_parameters_and_get_optimal_n(PER_SLOT_PROCESSING_PARAM, MAX_BOOKED_PARAM, p_PARAM, over_time_power):
     global PER_SLOT_PROCESSING, MAX_BOOKED, show_up_prob, MINIMUM_BOOKED
     PER_SLOT_PROCESSING = PER_SLOT_PROCESSING_PARAM
     MINIMUM_BOOKED = PER_SLOT_PROCESSING_PARAM
     MAX_BOOKED = MAX_BOOKED_PARAM
     show_up_prob = p_PARAM
 
-    return calculate_optimal_n_and_cost()
+    return calculate_optimal_n_and_cost(over_time_power)
 
 
 # todo This should become an external point of this code.
