@@ -1,3 +1,5 @@
+# This is the CLI for the slotting system using the Cmd module. Presently hard coded to 3 slots, can be easily scaled to N.
+
 import cmd
 import time
 

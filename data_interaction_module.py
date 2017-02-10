@@ -3,6 +3,9 @@ from os import walk
 
 import pandas as pd
 
+# This is the Data Interaction for the system using the Pandas Library, reading from pre-prepared excel sheets.
+# One needs to only substitute this module if the data interaction needs to change, to say a mongo set up
+
 # Static
 CSV_FORMAT = ".csv"
 PAY_OFF = "pay_off"
@@ -40,8 +43,8 @@ def look_up_dictionary(p, number_of_slots, N, over_time_constant=1, wait_time_co
 
     df = data_frame_dictionary[number_of_slots]
     row = df[df.probability == p][df.over_time_constant == over_time_constant][
-            df.wait_time_constant == wait_time_constant][
-            df.over_time_power == over_time_power][df.total_capacity == N]
+        df.wait_time_constant == wait_time_constant][
+        df.over_time_power == over_time_power][df.total_capacity == N]
 
     if len(row) == 0:
         print "The payoff is not previously calculated.\nDo you want to re-initialize?"
@@ -70,7 +73,7 @@ def initialize():
 
         if not CSV_FORMAT in file_name: continue
 
-        number_of_slots = df[NUMBER_OF_SLOTS] [0]
+        number_of_slots = df[NUMBER_OF_SLOTS][0]
         if not number_of_slots in ALLOWED_SLOT_TYPES:
             print "Skipped File as number of slots not supported. FileName : ", file_name
             continue
@@ -84,6 +87,7 @@ def initialize():
         add_to_dictionary(key, key_to_df_list[key])
 
     return time.time() - start_time
+
 
 # Run when module is imported
 initialize()

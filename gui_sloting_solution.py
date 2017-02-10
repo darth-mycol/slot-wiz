@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
+# This is the GUI for the system using the Tkinter module. Presently hard coded to 1,2,3 slots, can be scaled to N.
+
 import Tkinter
 
 import data_interaction_module
