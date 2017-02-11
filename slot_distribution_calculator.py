@@ -3,7 +3,7 @@ import itertools as itools
 import sys
 import time
 
-from payoff_calculator import estimate_payoff
+from slot_schedule_payoff_calculator import estimate_payoff
 
 debug_logger = True
 permutation_dictionary_list = []

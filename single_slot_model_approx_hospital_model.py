@@ -3,7 +3,7 @@ import math
 
 import scipy.stats as ss
 
-import payoff_calculator
+import slot_schedule_payoff_calculator
 
 PER_SLOT_PROCESSING = 200
 MAX_BOOKED = 375
@@ -76,7 +76,7 @@ def get_optimal_for_probability_list():
         print "PER_SLOT_PROCESSING, MAX_BOOKED, p, MINIMUM_BOOKED", PER_SLOT_PROCESSING, MAX_BOOKED, show_up_prob, MINIMUM_BOOKED
         expected_cost, optimal_N = calculate_optimal_n_and_cost()
 
-        distributed_configuration, payoff = payoff_calculator.set_parameters_and_estimate_payoff(
+        distributed_configuration, payoff = slot_schedule_payoff_calculator.set_parameters_and_estimate_payoff(
             show_up_prob_PARAM=probability, per_slot_processing_list=per_slot_processing_list,
             NUMBER_OF_SLOTS_PARAM=number_of_slots, total_booking=optimal_N, wait_time_constant=wait_time_constant,
             over_time_constant=over_time_constant)

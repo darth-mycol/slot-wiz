@@ -1,7 +1,7 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from payoff_calculator import estimate_payoff
+from slot_schedule_payoff_calculator import estimate_payoff
 
 
 def main_method():

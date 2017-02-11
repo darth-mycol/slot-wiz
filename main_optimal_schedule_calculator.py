@@ -1,7 +1,7 @@
 import csv
 import time
 
-import one_slot_model_calculate_optimal as range_calculator
+import single_slot_model_approx_hospital_model as range_calculator
 import select_most_probable_n
 import slot_distribution_calculator
 
@@ -44,12 +44,31 @@ def get_capacity_list():
     return [100, 135, 150, 200]
 
 
+def get_loss_parameters():
+    return ["PROB_MAXIMIZED", "GAIN_MINUS_LOSS", "LOSS_MAXIMIZED"]
+
+
 def get_loss_constant_pairs():
-    return [(0, 1), (0, 1.5)]
-    # return [(0, 1), (1, 1), (0.5, 1.5), (1.5, 1.5), (0, 1.5)]
+    return [(0, 1), (1, 1), (0.5, 1.5), (1.5, 1.5), (0, 1.5)]
 
 
-# External Entry Point
+def test_optimal_schedule_calculator():
+    number_of_slots = 3
+    total_capacity = 200
+    start_time = time.time()
+    loss_constant_pair_list = get_loss_constant_pairs()
+    over_time_power_list = get_over_time_power_list()  # Get list of probability to run over
+    probability_list = get_prob_list()
+    per_slot_processing_list = slot_distribution_calculator.get_initial_configuration(number_of_slots, total_capacity)
+    # noinspection PyArgumentList
+    TAG = "CAPACITY_" + str(total_capacity) + \
+          time.strftime("_%b_%d_%H_%M_", time.strptime(time.ctime()))
+    compute_optimal_schedule(loss_constant_pair_list, number_of_slots, over_time_power_list, per_slot_processing_list,
+                             probability_list, False, TAG)
+    print time.time() - start_time
+
+
+# External Entry Point of Main Slotting Code
 def compute_optimal_schedule(loss_constant_pair_list, number_of_slots, over_time_power_list, per_slot_processing_list,
                              probability_list, search_across_n=True, TAG=""):
     total_processing = sum(per_slot_processing_list)
@@ -82,43 +101,31 @@ def compute_optimal_schedule(loss_constant_pair_list, number_of_slots, over_time
     output_file.close()
 
 
-# External Entry Point
-def compute_optimal_n_maximizing_prob(capacity, TAG=""):
-    output_rows = [["optimalnumber", "probabilityrange", "probability", "capacity"]]
-    max_value = int(capacity * 1.1)
-    min_value = int(capacity * 0.95)
+# External Entry Point of AIIMS Requirement
+def compute_optimal_n_maximizing_prob():
+    capacity_list = get_capacity_list()
+    loss_parameter_list = get_loss_parameters()
 
-    probability_list = get_100_prob_list()
+    for loss_function_type in loss_parameter_list:
+        for capacity in capacity_list:
+            output_rows = [["optimalnumber", "probabilityrange", "probability", "capacity"]]
+            max_value = int(capacity * 1.1)
+            min_value = int(capacity * 0.95)
 
-    for prob in probability_list:
-        n, best_likelihood = select_most_probable_n.compute_best_n(prob, max_value, min_value, max_value)
-        output_rows.append([n, best_likelihood, prob, capacity])
+            probability_list = get_100_prob_list()
 
-    filename = TAG + "capacity" + str(capacity)
-    output_file = open("estimate_dictionary/" + filename + ".csv", 'w')
-    csv_file = csv.writer(output_file)
-    csv_file.writerows(output_rows)
-    output_file.close()
+            for prob in probability_list:
+                n, best_likelihood = select_most_probable_n.compute_best_n(capacity, max_value, min_value, prob,
+                                                                           max_value,
+                                                                           loss_function_Type=loss_function_type)
+                output_rows.append([n, best_likelihood, prob, capacity])
 
-
-def test_optimal_schedule_calculator():
-    number_of_slots = 3
-    total_capacity = 200
-    start_time = time.time()
-    loss_constant_pair_list = get_loss_constant_pairs()
-    over_time_power_list = get_over_time_power_list()  # Get list of probability to run over
-    probability_list = get_prob_list()
-    per_slot_processing_list = slot_distribution_calculator.get_initial_configuration(number_of_slots, total_capacity)
-    # noinspection PyArgumentList
-    TAG = "CAPACITY_" + str(total_capacity) + \
-          time.strftime("_%b_%d_%H_%M_", time.strptime(time.ctime()))
-    compute_optimal_schedule(loss_constant_pair_list, number_of_slots, over_time_power_list, per_slot_processing_list,
-                             probability_list, False, TAG)
-    print time.time() - start_time
+            filename = "CAPACITY_" + str(capacity) + time.strftime("_%b_%d_%H_%M_", time.strptime(time.ctime()))
+            output_file = open("estimate_dictionary/" + filename + ".csv", 'w')
+            csv_file = csv.writer(output_file)
+            csv_file.writerows(output_rows)
+            output_file.close()
 
 
 if __name__ == "__main__":
-    capacity_list = get_capacity_list()
-    time = time.strftime("_%b_%d_%H_%M_", time.strptime(time.ctime()))
-    for capacity in capacity_list:
-        compute_optimal_n_maximizing_prob(capacity, "DICT_" + time)
+    compute_optimal_n_maximizing_prob()

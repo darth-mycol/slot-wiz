@@ -3,7 +3,7 @@
 
 import Tkinter
 
-import data_read_estimate_dictionary
+import data_interaction_module_aiims
 
 SET_DEFAULT_PROB = 0.5
 LABEL_BACKGROUND = "mediumseagreen"
@@ -74,7 +74,7 @@ class mycolapp_tk(Tkinter.Tk):
                 return
 
             capacity = int(self.total_capacity_entry_variable.get())
-            optimal_n, probability_range = data_read_estimate_dictionary.retrieve_values(probability, capacity)
+            optimal_n, probability_range = data_interaction_module_aiims.retrieve_values(probability, capacity)
             if optimal_n is None:
                 self.payoffVariable.set("Number of Bookings not previously calculated for given parameters")
             else:

@@ -3,9 +3,9 @@
 import cmd
 import time
 
-import data_interaction_module
-import entry_optimal_schedule_calculator
-import payoff_calculator
+import data_interaction_module_slotting
+import main_optimal_schedule_calculator
+import slot_schedule_payoff_calculator
 
 # noinspection PyUnusedLocal
 class Interface(cmd.Cmd):
@@ -35,7 +35,7 @@ class Interface(cmd.Cmd):
         print "\nTime Taken :", time.time() - self.time_counter, "seconds\n"
 
     def do_reinitialize_data(self, arg):
-        data_interaction_module.initialize()
+        data_interaction_module_slotting.initialize()
 
     def do_print_parameters(self, arg):
         print "\nPresent Parameters : \n"
@@ -54,9 +54,9 @@ class Interface(cmd.Cmd):
         print "total_capacity : ", self.total_capacity
 
     def do_lookup(self, arg):
-        schedule, payoff = data_interaction_module.look_up_dictionary(self.p, self.number_of_slots, self.total_capacity,
-                                                                      self.over_time_constant, self.wait_time_constant,
-                                                                      self.over_time_power)
+        schedule, payoff = data_interaction_module_slotting.look_up_dictionary(self.p, self.number_of_slots, self.total_capacity,
+                                                                               self.over_time_constant, self.wait_time_constant,
+                                                                               self.over_time_power)
         if schedule is not None:
             print "Optimal Number of Bookings : ", sum(schedule)
             print "Optimal Distribution : ", schedule
@@ -65,16 +65,16 @@ class Interface(cmd.Cmd):
 
     def do_calculate_payoff(self, arg):
         'Calculate Payoff using present Parameter Configuration'
-        payoff = payoff_calculator.estimate_payoff(self.schedule, self.p, [self.capacity, self.capacity, self.capacity],
-                                                   self.wait_time_constant,
-                                                   self.over_time_constant, self.over_time_power)
+        payoff = slot_schedule_payoff_calculator.estimate_payoff(self.schedule, self.p, [self.capacity, self.capacity, self.capacity],
+                                                                 self.wait_time_constant,
+                                                                 self.over_time_constant, self.over_time_power)
         print "Calculated Pay Off : ", payoff
         self.print_time_taken()
 
     def do_calculate_optimal_schedule(self, arg):
-        entry_optimal_schedule_calculator.compute_optimal_schedule([(self.wait_time_constant, self.over_time_constant)],
-                                                                   self.number_of_slots, [self.over_time_power],
-                                                                   [self.capacity, self.capacity, self.capacity], [self.p])
+        main_optimal_schedule_calculator.compute_optimal_schedule([(self.wait_time_constant, self.over_time_constant)],
+                                                                  self.number_of_slots, [self.over_time_power],
+                                                                  [self.capacity, self.capacity, self.capacity], [self.p])
         self.do_reinitialize_data(self)
         self.print_time_taken()
 

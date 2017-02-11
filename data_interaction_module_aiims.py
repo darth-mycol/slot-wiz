@@ -1,3 +1,5 @@
+import inspect
+import os
 import time
 from os import walk
 
@@ -10,13 +12,13 @@ class Estimate_values:
         self.prob_range = prange
 
 
-ESTIMATE_DICTIONARY = "estimate_dictionary/"
+ESTIMATE_DICTIONARY = "/estimate_dictionary/"
 
 
 def initialize():
     start_time = time.time()
 
-    path = ESTIMATE_DICTIONARY
+    path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + ESTIMATE_DICTIONARY
     file_name_list = []
     for (d_path, d_names, f_names) in walk(path):
         file_name_list.extend(f_names)
@@ -25,7 +27,7 @@ def initialize():
     for file_name in file_name_list:
         if ".py" in file_name or ".DS_STORE" in file_name:
             continue
-        for index, line in enumerate(open(ESTIMATE_DICTIONARY + file_name, "r").readlines()):
+        for index, line in enumerate(open(path + file_name, "r").readlines()):
             terms = line.split(",")
             # Skip the header line and any lines without all the fields (and blank lines)
             if index == 0 or len(terms) < 4:

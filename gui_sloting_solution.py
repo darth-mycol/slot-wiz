@@ -5,8 +5,8 @@
 
 import Tkinter
 
-import data_interaction_module
-import payoff_calculator
+import data_interaction_module_slotting
+import slot_schedule_payoff_calculator
 
 ALLOWED_OVER_TIME_POWER = [1.0, 1.5, 2.0]
 
@@ -214,9 +214,9 @@ class mycolapp_tk(Tkinter.Tk):
             over_time_constant = float(self.over_time_constant_variable.get())
             over_time_power = float(self.over_time_power_variable.get())
             per_slot_processing_list, schedule = self.get_schedule_capacity()
-            payoff = payoff_calculator.estimate_payoff(schedule, probability,
-                                                       per_slot_processing_list, wait_time_constant,
-                                                       over_time_constant, over_time_power)
+            payoff = slot_schedule_payoff_calculator.estimate_payoff(schedule, probability,
+                                                                     per_slot_processing_list, wait_time_constant,
+                                                                     over_time_constant, over_time_power)
             self.payoffVariable.set("Calculated Pay Off : " + str(payoff))
         except Exception:
             self.payoffVariable.set("Could Not Compute Payoff. Please check parameter values.")
@@ -261,11 +261,11 @@ class mycolapp_tk(Tkinter.Tk):
             return
 
         try:
-            schedule, payoff = data_interaction_module.look_up_dictionary(probability,
-                                                                          self.radioVariable.get(),
-                                                                          int(self.total_capacity_entry_variable.get()),
-                                                                          over_time_constant, wait_time_constant,
-                                                                          over_time_power)
+            schedule, payoff = data_interaction_module_slotting.look_up_dictionary(probability,
+                                                                                   self.radioVariable.get(),
+                                                                                   int(self.total_capacity_entry_variable.get()),
+                                                                                   over_time_constant, wait_time_constant,
+                                                                                   over_time_power)
             self.optimalVariable.set("Calculated Pay Off : " + str(payoff) + " and optimal schedule : " + str(schedule))
         except Exception:
             self.optimalVariable.set("Could Not Compute Optimal Payoff. Please check parameter values.")
