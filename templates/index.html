@@ -1,154 +1,340 @@
-{% extends "layout.html" %}
-{% block body %}
-<script type="text/javascript">
-  $(function() {
-    var submit_form = function(e) {
-      $.getJSON($SCRIPT_ROOT + '/_add_numbers', {
-        a: $('input[name="a"]').val(),
-        b: $('input[name="b"]').val()
-      }, function(data) {
-        $('#result').text(data.result);
-        $('#prob_range').text(data.prob_range);
-        $('input[name=a]').focus().select();
-      });
-      return false;
-    };
-
-    $('a#calculate').bind('click', submit_form);
-
-    $('input[type=text]').bind('keydown', function(e) {
-      if (e.keyCode == 13) {
-        submit_form(e);
-      }
-    });
-
-    $('input[name=a]').focus();
-  });
-</script>
 <html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>myCOL Scheduler</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            font-family: "Courier New", Courier, monospace;
+        }
+        .container {
+            width: 96%;
+            background: #eee;
+            margin: 2%;
+        }
+        .tabs {
+            background: #ccc;
+        }
+        .tab {
+            float: left;
+            width: 33.33%;
+            text-align: center;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+        .tab.selected {
+            background : #eee;
+        }
+        .tab:hover {
+            background: #eee;
+        }
+        .main-tab-container {
+            padding: 10px;
+        }
+        .clear {
+            clear: both;
+            height: 0px;
+            width: 0px;
+            overflow: hidden;
+        }
+        .hide {
+            display: none;
+        }
+        .field {
+            padding : 10px;
+            clear: both;
+        }
+        .field .label, .field .value {
+            float: left;
+            width: 50%;
 
-<body bgcolor="mediumseagreen" text="white">
+        }
+        .field .label {
+            text-align: right;
+        }
+        .field .label div {
+            padding-right: 10px;
+            width: 90%;
+        }
+        .field .value {
 
-<center>
-<script language="javascript" type="text/javascript">
-var day_of_week = new Array('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
-var month_of_year = new Array('January','February','March','April','May','June','July','August','September','October','November','December');
+        }
+        .field .value select {
+            width: auto;
 
-//  DECLARE AND INITIALIZE VARIABLES
-var Calendar = new Date();
+        }
+        .button {
+            background: #000;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        #resultform1,#resultform3 {
+            color: #000099;
+            font-size: 18px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+</head>
+<body bgcolor="mediumseagreen">
+    <br>
+    <h2 align="center">AIIMS Scheduler</h2>
 
-var year = Calendar.getFullYear();     // Returns year
-var month = Calendar.getMonth();    // Returns month (0-11)
-var today = Calendar.getDate();    // Returns day (1-31)
-var weekday = Calendar.getDay();    // Returns day (1-31)
+    <div class="container">
+        <div class="tabs">
+            <div id="tab1" class="tab selected">
+                <span>Optimal Bookings By Date</span>
+            </div>
+            <div id="tab2" class="tab">
+                <span>By Date Submission</span>
+            </div>
+            <div id="tab3" class="tab">
+                <span>Optimal Bookings by Probability</span>
+            </div>
+            <div class="clear"></div>
+        </div>
+        <div class="main-tab-container">
+            <div id="tab-container1" class="tab-container">
+                <div class="field">
+                    <div class="label"><div>Select Department</div></div>
+                    <div class="value">
+                        <select id="department" onchange="resetResultForm1()">
+                            <option>Select</option>
+                            <option value="1">Medicine</option>
+                            <option value="2">Ortho</option>
+                            <option value="3">Skin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label"><div>Select Date</div></div>
+                    <div class="value">
+                        <input type="text" value="01/02/2017" id="date" readonly="readonly" onchange="resetResultForm1()" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label"><div>Capacity</div></div>
+                    <div class="value">
+                        <select id="capacity" onchange="resetResultForm1()">
+                            <option>Select</option>
+                            <option value="100">100</option>
+                            <option value="135">135</option>
+                            <option value="150">150</option>
+                            <option value="200">200</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label"><div>&nbsp;</div></div>
+                    <div class="value">
+                        <input class="button" id="form1submit" type="button" value="Get Optimal No. of Bookings" />
+                    </div>
+                </div>
 
-var DAYS_OF_WEEK = 7;    // "constant" for number of days in a week
-var DAYS_OF_MONTH = 31;    // "constant" for number of days in a month
-var cal;    // Used for printing
+                <div id="resultform1" class="hide">
+                    <div class="field">
+                        <div class="label"><div>Optimal No. of Bookings</div></div>
+                        <div class="value">
+                            <span id="noofbookings"></span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="label"><div>Probability of staying in the +10% and -5% range</div></div>
+                        <div class="value">
+                            <span id="probability"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="clear"></div>
 
-Calendar.setDate(1);    // Start the calendar day at '1'
-Calendar.setMonth(month);    // Start the calendar month at now
+            </div>
+            <div id="tab-container2" class="tab-container hide">
+                <div class="field">
+                    <div class="label"><div>Select Date</div></div>
+                    <div class="value">
+                        <input type="text" value="01/02/2017" id="form2date" readonly="readonly" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label"><div>Select Department</div></div>
+                    <div class="value">
+                        <select id="form2department">
+                            <option>Select</option>
+                            <option value="1">Medicine</option>
+                            <option value="2">Ortho</option>
+                            <option value="3">Skin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label"><div>Day booked</div></div>
+                    <div class="value">
+                        <input type="text" id="daybooked" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label"><div>Day Show up</div></div>
+                    <div class="value">
+                        <input type="text" id="dayshowup" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label"><div>&nbsp;</div></div>
+                    <div class="value">
+                        <input class="button" id="form2submit" type="button" value="Submit" />
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <div id="tab-container3" class="tab-container hide">
+                <div class="field">
+                    <div class="label"><div>Probability of Show Rate 0.1</div></div>
+                    <div class="value">
+                        <input type="text" id="form3prob" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label"><div>Capacity of Slot 200</div></div>
+                    <div class="value">
+                        <input type="text" id="form3capacity" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label"><div>&nbsp;</div></div>
+                    <div class="value">
+                        <input class="button" id="form3submit" type="button" value="Get Optimal No. of Bookings" />
+                    </div>
+                </div>
 
+                <div id="resultform3" class="hide">
+                    <div class="field">
+                        <div class="label"><div>Optimal No. of Bookings</div></div>
+                        <div class="value">
+                            <span id="form3noofbookings"></span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="label"><div>Probability of staying in the +10% and -5% range</div></div>
+                        <div class="value">
+                            <span id="form3probability"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+        </div>
 
-/* VARIABLES FOR FORMATTING
-NOTE: You can format the 'BORDER', 'BGCOLOR', 'CELLPADDING', 'BORDERCOLOR'
-      tags to customize your caledanr's look. */
+    </div>
+<script>
+    $(".tab").click(
+            function () {
+                $('.tab').removeClass('selected');
+                $('.tab-container').addClass('hide');
+                if($(this).attr('id') == 'tab1') {
+                    $('#tab1').addClass('selected');
+                    $('#tab-container1').removeClass('hide');
+                } else if($(this).attr('id') == 'tab2') {
+                    $('#tab2').addClass('selected');
+                    $('#tab-container2').removeClass('hide');
+                } else if($(this).attr('id') == 'tab3') {
+                    $('#tab3').addClass('selected');
+                    $('#tab-container3').removeClass('hide');
+                }
+            }
+    );
 
-var TR_start = '<TR>';
-var TR_end = '</TR>';
-var highlight_start = '<TD WIDTH="30"><TABLE CELLSPACING=0 BORDER=1 BGCOLOR=DEDEFF BORDERCOLOR=CCCCCC><TR><TD WIDTH=20><B><CENTER>';
-var highlight_end   = '</CENTER></TD></TR></TABLE></B>';
-var TD_start = '<TD WIDTH="30"><CENTER>';
-var TD_end = '</CENTER></TD>';
+    $( "#date" ).datepicker(
+            { minDate: new Date(2017,2 -1,1), maxDate: new Date(2017,7 -1,31) ,dateFormat: "dd/mm/yy"}
+            );
+    $( "#form2date" ).datepicker(
+            { maxDate:0  ,dateFormat: "dd/mm/yy"}
+    );
+    $("#form1submit").click(
+            function () {
+                $('#resultform1').removeClass('hide');
+                $('#probability').html('Loading Result');
+                $('#noofbookings').html('Loading Result');
+                $.ajax({
+                    url: "/_by_date",
+                    context: document.body,
+                    method: "GET",
+                    data: {department: $('#department').val(), date: $('#date').val(),capacity: $('#capacity').val()}
+                }).done(function(data) {
+                    if (data.success == "false") {
+                        $('#probability').html('Error');
+                        $('#noofbookings').html('Error');
+                    } else {
+                        $('#probability').html(data.prob_range);
+                        $('#noofbookings').html(data.result);
+                    }
+                })  .fail(function() {
+                    $('#probability').html('Error');
+                    $('#noofbookings').html('Error');
+                })
+            }
+    );
+    $("#form2submit").click(
+            function () {
+                if(!$('#form2date').val() || !$('#form2department').val() || !$('#daybooked').val() || !$('#dayshowup').val()) {
+                    alert("Please select all the fields.");
+                    return;
+                }
+                if(!$.isNumeric($('#daybooked').val()) || !$.isNumeric($('#dayshowup').val())) {
+                    alert("Please enter valid values for Day Booked and Day Show up");
+                    return;
+                }
+                $.ajax({
+                    url: "/_add_date_data",
+                    context: document.body,
+                    method: "GET",
+                    data: {date: $('#form2date').val(), department: $('#form2department').val(),daybooked: $('#daybooked').val(),dayshowup: $('#dayshowup').val()}
+                }).done(function(data) {
+                    if (data.success == "false"){
+                        alert("Error in saving data");
+                    } else {
+                        alert("data saved");
+                    }
+                    $('#form2date').val('');
+                    $('#form2department').val('');
+                    $('#daybooked').val('');
+                    $('#dayshowup').val('');
+                })  .fail(function() {
+                    alert("Error in saving data");
+                })
+            }
+    );
+    $("#form3submit").click(
+            function () {
+                $('#resultform3').removeClass('hide');
+                $('#form3probability').html('Loading Result');
+                $('#form3noofbookings').html('Loading Result');
+                $.ajax({
+                    url: "/_add_numbers",
+                    context: document.body,
+                    method: "GET",
+                    data: {probability: $('#form3prob').val(),capacity: $('#form3capacity').val()}
+                }).done(function(data) {
+                    if (data.success == "false") {
+                        $('#form3probability').html('Internal Error');
+                        $('#form3noofbookings').html('Internal Error');
+                    } else {
+                        $('#form3probability').html(data.prob_range);
+                        $('#form3noofbookings').html(data.result);
+                    }
+                })  .fail(function() {
+                    $('#form3probability').html('Error');
+                    $('#form3noofbookings').html('Error');
+                })
+            }
+    );
+    function  resetResultForm1() {
+        $('#resultform1').addClass('hide');
+    }
 
-/* BEGIN CODE FOR CALENDAR
-NOTE: You can format the 'BORDER', 'BGCOLOR', 'CELLPADDING', 'BORDERCOLOR'
-tags to customize your calendar's look.*/
-
-cal =  '<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 BORDERCOLOR=BBBBBB><TR><TD>';
-cal += '<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=2>' + TR_start;
-cal += '<TD COLSPAN="' + DAYS_OF_WEEK + '" BGCOLOR="#EFEFEF"><CENTER><B>';
-cal += month_of_year[month]  + '   ' + year + '</B>' + TD_end + TR_end;
-cal += TR_start;
-
-//   DO NOT EDIT BELOW THIS POINT  //
-
-// LOOPS FOR EACH DAY OF WEEK
-for(index=0; index < DAYS_OF_WEEK; index++)
-{
-
-// BOLD TODAY'S DAY OF WEEK
-if(weekday == index)
-cal += TD_start + '<B>' + day_of_week[index] + '</B>' + TD_end;
-
-// PRINTS DAY
-else
-cal += TD_start + day_of_week[index] + TD_end;
-}
-
-cal += TD_end + TR_end;
-cal += TR_start;
-
-// FILL IN BLANK GAPS UNTIL TODAY'S DAY
-for(index=0; index < Calendar.getDay(); index++)
-cal += TD_start + '  ' + TD_end;
-
-// LOOPS FOR EACH DAY IN CALENDAR
-for(index=0; index < DAYS_OF_MONTH; index++)
-{
-if( Calendar.getDate() > index )
-{
-  // RETURNS THE NEXT DAY TO PRINT
-  week_day =Calendar.getDay();
-
-  // START NEW ROW FOR FIRST DAY OF WEEK
-  if(week_day == 0)
-  cal += TR_start;
-
-  if(week_day != DAYS_OF_WEEK)
-  {
-
-  // SET VARIABLE INSIDE LOOP FOR INCREMENTING PURPOSES
-  var day  = Calendar.getDate();
-
-  // HIGHLIGHT TODAY'S DATE
-  if( today==Calendar.getDate() )
-  cal += highlight_start + day + highlight_end + TD_end;
-
-  // PRINTS DAY
-  else
-  cal += TD_start + day + TD_end;
-  }
-
-  // END ROW FOR LAST DAY OF WEEK
-  if(week_day == DAYS_OF_WEEK)
-  cal += TR_end;
-  }
-
-  // INCREMENTS UNTIL END OF THE MONTH
-  Calendar.setDate(Calendar.getDate()+1);
-
-}// end for loop
-
-cal += '</TD></TR></TABLE></TABLE>';
-
-//  PRINT CALENDAR
-document.write(cal);
-
-//  End -->
 </script>
-</center>
-<br/><div style="clear:both"></div><div><a target="_blank" href="http://www.htmlbestcodes.com/"><span style="font-size: 8pt; text-decoration: none">HTML Best Codes</span></a></div>
-
-
-<h2 align="center">AIIMS Scheduler</h2>
-<p>
-    Test 2 Probability of Show Rate : <input type="text" size="5" name="a" value="0.1"> <br> <br>
-  Test 2 Capacity of Slot : <input type="text" size="5" name="b" value="200"> <br> <br>
-  Test 2 Optimal No. of Bookings : <span id="result">?</span> <br> <br>
-  Test 2 Probability of staying in the +10% and -5% range : <span id="prob_range">?</span>
-<p><a href=# id="calculate">calculate server side</a>
 </body>
-
-  </html>
-{% endblock %}
+</html>

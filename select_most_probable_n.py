@@ -49,8 +49,7 @@ def compute_best_n(capacity, max_value, min_value, prob, n_start_point, loss_fun
         raise Exception("loss_function_Type should be in [PROB_MAXIMIZED, GAIN_MINUS_LOSS, LOSS_MAXIMIZED]")
 
     n_associated_with_best_likelihood = -1
-    up_to = int(float(capacity) / prob)
-    up_to = max_value if max_value > up_to else up_to
+    up_to = int(float(max_value) / prob)
 
     if loss_function_Type == "PROB_MAXIMIZED":
         return compute_best_n_prob_maximized(loss_function_Type, max_value, min_value,
