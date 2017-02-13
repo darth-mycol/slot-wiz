@@ -1,3 +1,5 @@
+import inspect
+import os
 import time
 from os import walk
 
@@ -12,7 +14,7 @@ PAY_OFF = "pay_off"
 SLOT_COLUMN_NAME = 'slot'
 NUMBER_OF_SLOTS = 'number_of_slots'
 ALLOWED_SLOT_TYPES = [24, 12, 3, 2, 1]
-PROCESSED_RESULTS = "processed_Results/"
+PROCESSED_RESULTS = "/processed_Results/"
 
 # Dynamic
 data_frame_dictionary = {}
@@ -60,7 +62,7 @@ def look_up_dictionary(p, number_of_slots, N, over_time_constant=1, wait_time_co
 def initialize():
     start_time = time.time()
 
-    path = PROCESSED_RESULTS
+    path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + PROCESSED_RESULTS
     file_name_list = []
     for (d_path, d_names, f_names) in walk(path):
         file_name_list.extend(f_names)
