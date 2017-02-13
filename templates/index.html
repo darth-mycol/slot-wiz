@@ -1,20 +1,23 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>myCOL Scheduler</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>myCOL Scheduler</title>
     <style>
         body {
             padding: 0;
             margin: 0;
             font-family: "Courier New", Courier, monospace;
+            color : black;
+            background : lightseagreen;
         }
         .container {
             width: 96%;
-            background: #eee;
+            height: 60%;
+            background: lavender;
             margin: 2%;
         }
         .tabs {
-            background: #ccc;
+            background: mediumseagreen;
         }
         .tab {
             float: left;
@@ -24,10 +27,10 @@
             cursor: pointer;
         }
         .tab.selected {
-            background : #eee;
+            background : lavender;
         }
         .tab:hover {
-            background: #eee;
+            background: lightblue;
         }
         .main-tab-container {
             padding: 10px;
@@ -62,12 +65,11 @@
         }
         .field .value select {
             width: auto;
-
         }
         .button {
             background: #000;
             color: #fff;
-            padding: 10px;
+            padding: 12px;
             border: none;
             cursor: pointer;
         }
@@ -75,160 +77,196 @@
             color: #000099;
             font-size: 18px;
         }
+
+
     </style>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 </head>
 <body bgcolor="mediumseagreen">
-    <br>
-    <h2 align="center">AIIMS Scheduler</h2>
+<br>
+<h2 align="center">AIIMS Scheduler</h2>
 
-    <div class="container">
-        <div class="tabs">
-            <div id="tab1" class="tab selected">
-                <span>Optimal Bookings By Date</span>
+<div class="container">
+    <div class="tabs">
+        <div id="tab1" class="tab selected">
+            <span>Optimal Bookings By Date</span>
+        </div>
+        <div id="tab2" class="tab">
+            <span>By Date Submission</span>
+        </div>
+        <div id="tab3" class="tab">
+            <span>Optimal Bookings by Probability</span>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div class="main-tab-container">
+        <div id="tab-container1" class="tab-container">
+            <div class="field">
+                <div class="label">
+                    <div>Select Department</div>
+                </div>
+                <div class="value">
+                    <select id="department" onchange="resetResultForm1()">
+                        <option disabled>Select Department</option>
+                        <option value="1" selected="selected">Medicine</option>
+                        <option value="2">Ortho</option>
+                        <option value="3">Skin</option>
+                    </select>
+                </div>
             </div>
-            <div id="tab2" class="tab">
-                <span>By Date Submission</span>
+            <div class="field">
+                <div class="label">
+                    <div>Select Date</div>
+                </div>
+                <div class="value">
+                    <input type="text" value="01/02/2017" id="date" readonly="readonly" onchange="resetResultForm1()"/>
+                </div>
             </div>
-            <div id="tab3" class="tab">
-                <span>Optimal Bookings by Probability</span>
+            <div class="field">
+                <div class="label">
+                    <div>Capacity</div>
+                </div>
+                <div class="value">
+                    <select id="capacity" onchange="resetResultForm1()">
+                        <option disabled>Select Capacity</option>
+                        <option value="100">100</option>
+                        <option value="135">135</option>
+                        <option value="150">150</option>
+                        <option value="200" selected="selected">200</option>
+
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>&nbsp;</div>
+                </div>
+                <div class="value">
+                    <input class="button" id="form1submit" type="button" value="Get Optimal No. of Bookings"/>
+                </div>
+            </div>
+
+            <div id="resultform1" class="hide">
+                <div class="field">
+                    <div class="label">
+                        <div>Optimal No. of Bookings</div>
+                    </div>
+                    <div class="value">
+                        <span id="noofbookings"></span>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="label">
+                        <div>Probability of staying in the +10% and -5% range</div>
+                    </div>
+                    <div class="value">
+                        <span id="probability"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="clear"></div>
+
+        </div>
+        <div id="tab-container2" class="tab-container hide">
+            <div class="field">
+                <div class="label">
+                    <div>Select Date</div>
+                </div>
+                <div class="value">
+                    <input type="text" value="01/02/2017" id="form2date" readonly="readonly"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>Select Department</div>
+                </div>
+                <div class="value">
+                    <select id="form2department">
+                        <option disabled>Select Department</option>
+                        <option value="1" selected="selected">Medicine</option>
+                        <option value="2">Ortho</option>
+                        <option value="3">Skin</option>
+
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>Day booked</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="daybooked" value="500"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>Day Show up</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="dayshowup" value="250"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>&nbsp;</div>
+                </div>
+                <div class="value">
+                    <input class="button" id="form2submit" type="button" value="Submit Data Entry"/>
+                </div>
             </div>
             <div class="clear"></div>
         </div>
-        <div class="main-tab-container">
-            <div id="tab-container1" class="tab-container">
-                <div class="field">
-                    <div class="label"><div>Select Department</div></div>
-                    <div class="value">
-                        <select id="department" onchange="resetResultForm1()">
-                            <option>Select</option>
-                            <option value="1">Medicine</option>
-                            <option value="2">Ortho</option>
-                            <option value="3">Skin</option>
-                        </select>
-                    </div>
+        <div id="tab-container3" class="tab-container hide">
+            <div class="field">
+                <div class="label">
+                    <div>Probability of Show : </div>
                 </div>
-                <div class="field">
-                    <div class="label"><div>Select Date</div></div>
-                    <div class="value">
-                        <input type="text" value="01/02/2017" id="date" readonly="readonly" onchange="resetResultForm1()" />
-                    </div>
+                <div class="value">
+                    <input type="text" id="form3prob" value="0.5"/>
                 </div>
-                <div class="field">
-                    <div class="label"><div>Capacity</div></div>
-                    <div class="value">
-                        <select id="capacity" onchange="resetResultForm1()">
-                            <option>Select</option>
-                            <option value="100">100</option>
-                            <option value="135">135</option>
-                            <option value="150">150</option>
-                            <option value="200">200</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="label"><div>&nbsp;</div></div>
-                    <div class="value">
-                        <input class="button" id="form1submit" type="button" value="Get Optimal No. of Bookings" />
-                    </div>
-                </div>
-
-                <div id="resultform1" class="hide">
-                    <div class="field">
-                        <div class="label"><div>Optimal No. of Bookings</div></div>
-                        <div class="value">
-                            <span id="noofbookings"></span>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="label"><div>Probability of staying in the +10% and -5% range</div></div>
-                        <div class="value">
-                            <span id="probability"></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="clear"></div>
-
             </div>
-            <div id="tab-container2" class="tab-container hide">
-                <div class="field">
-                    <div class="label"><div>Select Date</div></div>
-                    <div class="value">
-                        <input type="text" value="01/02/2017" id="form2date" readonly="readonly" />
-                    </div>
+            <div class="field">
+                <div class="label">
+                    <div>Capacity of Slot : </div>
                 </div>
-                <div class="field">
-                    <div class="label"><div>Select Department</div></div>
-                    <div class="value">
-                        <select id="form2department">
-                            <option>Select</option>
-                            <option value="1">Medicine</option>
-                            <option value="2">Ortho</option>
-                            <option value="3">Skin</option>
-                        </select>
-                    </div>
+                <div class="value">
+                    <input type="text" id="form3capacity" value="200"/>
                 </div>
-                <div class="field">
-                    <div class="label"><div>Day booked</div></div>
-                    <div class="value">
-                        <input type="text" id="daybooked" />
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="label"><div>Day Show up</div></div>
-                    <div class="value">
-                        <input type="text" id="dayshowup" />
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="label"><div>&nbsp;</div></div>
-                    <div class="value">
-                        <input class="button" id="form2submit" type="button" value="Submit" />
-                    </div>
-                </div>
-                <div class="clear"></div>
             </div>
-            <div id="tab-container3" class="tab-container hide">
-                <div class="field">
-                    <div class="label"><div>Probability of Show Rate 0.1</div></div>
-                    <div class="value">
-                        <input type="text" id="form3prob" />
-                    </div>
+            <div class="field">
+                <div class="label">
+                    <div>&nbsp;</div>
                 </div>
-                <div class="field">
-                    <div class="label"><div>Capacity of Slot 200</div></div>
-                    <div class="value">
-                        <input type="text" id="form3capacity" />
-                    </div>
+                <div class="value">
+                    <input class="button" id="form3submit" type="button" value="Get Optimal No. of Bookings"/>
                 </div>
-                <div class="field">
-                    <div class="label"><div>&nbsp;</div></div>
-                    <div class="value">
-                        <input class="button" id="form3submit" type="button" value="Get Optimal No. of Bookings" />
-                    </div>
-                </div>
+            </div>
 
-                <div id="resultform3" class="hide">
-                    <div class="field">
-                        <div class="label"><div>Optimal No. of Bookings</div></div>
-                        <div class="value">
-                            <span id="form3noofbookings"></span>
-                        </div>
+            <div id="resultform3" class="hide">
+                <div class="field">
+                    <div class="label">
+                        <div>Optimal No. of Bookings</div>
                     </div>
-                    <div class="field">
-                        <div class="label"><div>Probability of staying in the +10% and -5% range</div></div>
-                        <div class="value">
-                            <span id="form3probability"></span>
-                        </div>
+                    <div class="value">
+                        <span id="form3noofbookings"></span>
                     </div>
                 </div>
-                <div class="clear"></div>
+                <div class="field">
+                    <div class="label">
+                        <div>Probability of staying in the +10% and -5% range</div>
+                    </div>
+                    <div class="value">
+                        <span id="form3probability"></span>
+                    </div>
+                </div>
             </div>
+            <div class="clear"></div>
         </div>
-
     </div>
+
+</div>
 <script>
     $(".tab").click(
             function () {
@@ -297,11 +335,10 @@
                         alert("Error in saving data");
                     } else {
                         alert("data saved");
+                        $('#daybooked').val('');
+                        $('#dayshowup').val('');
                     }
-                    $('#form2date').val('');
-                    $('#form2department').val('');
-                    $('#daybooked').val('');
-                    $('#dayshowup').val('');
+
                 })  .fail(function() {
                     alert("Error in saving data");
                 })
@@ -334,6 +371,8 @@
     function  resetResultForm1() {
         $('#resultform1').addClass('hide');
     }
+
+
 
 </script>
 </body>
