@@ -1,3 +1,4 @@
+import csv
 import inspect
 import os
 import time
@@ -13,9 +14,20 @@ class Estimate_values:
         self.prob_range = prange
 
 
+date_time_format = "%a_%b_%d_%H_%M_%S"
+
 ESTIMATE_DICTIONARY = "/estimate_dictionary/"
 DATE_DICTIONARY = "/date_dictionary/"
 PREVIOUS_DICTIONARY = "/previous_dictionary/previous_days_data.csv"
+
+
+def write_one_optimal_by_date_file(output_rows, capacity):
+    filename = time.strftime(date_time_format) + "_CAPACITY_" + str(capacity) + "_optimal_no_by_date"
+    path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + DATE_DICTIONARY
+    output_file = open(path + filename + ".csv", 'w')
+    csv_file = csv.writer(output_file)
+    csv_file.writerows(output_rows)
+    output_file.close()
 
 
 def initialize_estimate_dictionary_by_date():
@@ -79,14 +91,14 @@ def initialize_estimate_dictionary():
 def retrieve_values(prob, capacity):
     estimate = estimate_dictionary.get((prob, capacity))
     if estimate is None:
-        return 0, 0
+        return None, None
     return estimate.optimal_n, estimate.prob_range
 
 
 def retrieve_values_by_date(date, department, capacity):
     estimate = date_wise_estimate_dictionary.get((date, department, capacity))
     if estimate is None:
-        return 0, 0
+        return None, None
     return estimate.optimal_n, estimate.prob_range
 
 
@@ -99,7 +111,7 @@ def save_values_by_date(date, department, booked, actual_show_up):
         with open(path, "a") as dictionary:
             dictionary.write("Date,Department,Booked,Actual_show_up")
     except Exception:
-        pass        #ignored
+        pass  # ignored
 
     with open(path, "a") as dictionary:
         dictionary.write("\n" + str(date) + "," + str(department) + "," + str(booked) + "," + str(actual_show_up))

@@ -21,7 +21,8 @@
         }
         .tab {
             float: left;
-            width: 25%;
+            width: 20%;
+            height : 37px;
             text-align: center;
             padding: 10px 0;
             cursor: pointer;
@@ -96,14 +97,17 @@
         <div id="tab1" class="tab selected">
             <span>Optimal Bookings By Date</span>
         </div>
-        <div id="tab2" class="tab">
-            <span>Data Submission</span>
-        </div>
         <div id="tab3" class="tab">
-            <span>Optimal Bookings by Probability</span>
+            <span>Optimal Bookings By Probability</span>
         </div>
         <div id="tab4" class="tab">
             <span>Slotting (Advanced)</span>
+        </div>
+        <div id="tab5" class="tab">
+            <span>Calculate PayOff (Advanced)</span>
+        </div>
+        <div id="tab2" class="tab">
+            <span>Data Submission</span>
         </div>
         <div class="clear"></div>
     </div>
@@ -239,7 +243,7 @@
         <div id="tab-container3" class="tab-container hide">
             <div class="field">
                 <div class="label">
-                    <div>Probability of Show : </div>
+                    <div>Probability of Show :</div>
                 </div>
                 <div class="value">
                     <input type="text" id="form3prob" value="0.5"/>
@@ -247,10 +251,17 @@
             </div>
             <div class="field">
                 <div class="label">
-                    <div>Capacity of Slot : </div>
+                    <div>Capacity</div>
                 </div>
                 <div class="value">
-                    <input type="text" id="form3capacity" value="200"/>
+                    <select id="form3capacity" onchange="resetResultForm1()">
+                        <option disabled>Select Capacity</option>
+                        <option value="100">100</option>
+                        <option value="135">135</option>
+                        <option value="150">150</option>
+                        <option value="200" selected="selected">200</option>
+
+                    </select>
                 </div>
             </div>
             <div class="field">
@@ -305,6 +316,14 @@
             </div>
             <div class="field">
                 <div class="label">
+                    <div>Total Capacity :</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="form4capacity" value="200"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
                     <div>Wait Time Cost :</div>
                 </div>
                 <div class="value">
@@ -325,14 +344,6 @@
                 </div>
                 <div class="value">
                     <input type="text" id="form4overtimepower" value="2" typeof="float"/>
-                </div>
-            </div>
-            <div class="field">
-                <div class="label">
-                    <div>Total Capacity :</div>
-                </div>
-                <div class="value">
-                    <input type="text" id="form4capacity" value="200"/>
                 </div>
             </div>
             <div class="field">
@@ -364,6 +375,85 @@
             </div>
             <div class="clear"></div>
         </div>
+        <div id="tab-container5" class="tab-container hide">
+            <div class="field">
+                <div class="label">
+                    <div>Probability of Show :</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="form5prob" value="0.5"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>Total Capacity :</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="form5capacity" value="200"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>Comma Separated Schedule (For Example (5, 5, 5)) :</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="form5schedule" value="129, 125, 116"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>Number of Slots :</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="form5noofslots" value="3" typeof="int"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>Wait Time Cost :</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="form5waittimeconstant" value="1" typeof="float"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>Over Time Cost :</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="form5overtimeconstant" value="1" typeof="float"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>Impact of Over Time :</div>
+                </div>
+                <div class="value">
+                    <input type="text" id="form5overtimepower" value="2" typeof="float"/>
+                </div>
+            </div>
+            <div class="field">
+                <div class="label">
+                    <div>&nbsp;</div>
+                </div>
+                <div class="value">
+                    <input class="button" id="form5submit" type="button" value="Calculate PayOff"/>
+                </div>
+            </div>
+
+            <div id="resultform5" class="hide">
+                <div class="field">
+                    <div class="label">
+                        <div>Payoff</div>
+                    </div>
+                    <div class="value">
+                        <span id="form5payoff"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="clear"></div>
+        </div>
+
     </div>
 
 </div>
@@ -384,6 +474,9 @@
                 } else if($(this).attr('id') == 'tab4') {
                     $('#tab4').addClass('selected');
                     $('#tab-container4').removeClass('hide');
+                } else if($(this).attr('id') == 'tab5') {
+                    $('#tab5').addClass('selected');
+                    $('#tab-container5').removeClass('hide');
                 }
             }
     );
@@ -411,8 +504,8 @@
                     data: {department: $('#department').val(), date: $('#date').val(),capacity: $('#capacity').val()}
                 }).done(function(data) {
                     if (data.success == "false") {
-                        $('#probability').html('Error');
-                        $('#noofbookings').html('Error');
+                        $('#probability').html(data.prob_range);
+                        $('#noofbookings').html(data.result);
                     } else {
                         $('#probability').html(data.prob_range);
                         $('#noofbookings').html(data.result);
@@ -469,8 +562,8 @@
                     data: {probability: $('#form3prob').val(),capacity: $('#form3capacity').val()}
                 }).done(function(data) {
                     if (data.success == "false") {
-                        $('#form3probability').html('Internal Error');
-                        $('#form3noofbookings').html('Internal Error');
+                        $('#form3probability').html(data.prob_range);
+                        $('#form3noofbookings').html(data.result);
                     } else {
                         $('#form3probability').html(data.prob_range);
                         $('#form3noofbookings').html(data.result);
@@ -495,8 +588,8 @@
                     over_time_power: $('#form4overtimepower').val()}
                 }).done(function(data) {
                     if (data.success == "false") {
-                        $('#form4payoff').html('Internal Error');
-                        $('#form4schedule').html('Internal Error');
+                        $('#form4payoff').html(data.prob_range);
+                        $('#form4schedule').html(data.result);
                     } else {
                         $('#form4payoff').html(data.prob_range);
                         $('#form4schedule').html(data.result);
@@ -504,6 +597,29 @@
                 })  .fail(function() {
                     $('#form4payoff').html('Error');
                     $('#form4schedule').html('Error');
+                })
+            }
+    );
+    $("#form5submit").click(
+            function () {
+                $('#resultform5').removeClass('hide');
+                $('#form5payoff').html('Loading Result');
+                $.ajax({
+                    url: "/_calculate_payoff",
+                    context: document.body,
+                    method: "GET",
+                    data: {probability: $('#form5prob').val(),total_capacity: $('#form5capacity').val(),
+                    wait_time_constant: $('#form5waittimeconstant').val(), over_time_constant: $('#form5overtimeconstant').val(),
+                    over_time_power: $('#form5overtimepower').val(), schedule: $('#form5schedule').val(),
+                    number_of_slots: $('#form5noofslots').val()}
+                }).done(function(data) {
+                    if (data.success == "false") {
+                        $('#form5payoff').html(data.result);
+                    } else {
+                        $('#form5payoff').html(data.result);
+                    }
+                })  .fail(function() {
+                    $('#form5payoff').html('Error - Call Failed');
                 })
             }
     );
