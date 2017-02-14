@@ -246,7 +246,7 @@
                     <div>Probability of Show :</div>
                 </div>
                 <div class="value">
-                    <input type="text" id="form3prob" value="0.5"/>
+                    <input type="text" id="form3prob" value="0.5" onchange="resetResultForm3()"/>
                 </div>
             </div>
             <div class="field">
@@ -254,7 +254,7 @@
                     <div>Capacity</div>
                 </div>
                 <div class="value">
-                    <select id="form3capacity" onchange="resetResultForm1()">
+                    <select id="form3capacity" onchange="resetResultForm3()">
                         <option disabled>Select Capacity</option>
                         <option value="100">100</option>
                         <option value="135">135</option>
@@ -358,7 +358,7 @@
             <div id="resultform4" class="hide">
                 <div class="field">
                     <div class="label">
-                        <div>Schedule</div>
+                        <div>Schedule : </div>
                     </div>
                     <div class="value">
                         <span id="form4schedule"></span>
@@ -625,9 +625,12 @@
     );
     function  resetResultForm1() {
         $('#resultform1').addClass('hide');
+        $('#resultform1_second').addClass('hide');
     }
-
-
+    function resetResultForm3() {
+        $('#resultform3').addClass('hide');
+        $('#resultform3_second').addClass('hide');
+    }
 
 
 </script>

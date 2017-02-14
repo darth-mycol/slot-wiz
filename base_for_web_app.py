@@ -91,7 +91,7 @@ def calculate_payoff():
         if len(schedule) != number_of_slots:
             return jsonify(success="false", result="No of Slots in Schedule not equal to total number of slots.")
         if number_of_slots < 1:
-            return jsonify(success="false", result="No of Slots cannot be less than 0")
+            return jsonify(success="false", result="No of Slots cannot be less than 1")
 
         prob = request.args.get('probability', 0, type=float)
         total_capacity = request.args.get('total_capacity', 0, type=int)
