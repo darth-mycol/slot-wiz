@@ -21,8 +21,8 @@ DATE_DICTIONARY = "/date_dictionary/"
 PREVIOUS_DICTIONARY = "/previous_dictionary/previous_days_data.csv"
 
 
-def write_one_optimal_by_date_file(output_rows, capacity):
-    filename = time.strftime(date_time_format) + "_CAPACITY_" + str(capacity) + "_optimal_no_by_date"
+def write_one_optimal_by_date_file(output_rows, capacity="All", department="All"):
+    filename = time.strftime(date_time_format) + "_CAPACITY_" + str(capacity) + "_department_" + str(department) + "_optimal_no_by_date"
     path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + DATE_DICTIONARY
     output_file = open(path + filename + ".csv", 'w')
     csv_file = csv.writer(output_file)
