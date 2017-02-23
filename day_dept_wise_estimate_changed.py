@@ -2,6 +2,8 @@ import pandas as pd
 
 import data_interaction_module_aiims
 
+PROBABILITY_XLS = "pickup_dictionary/predicted_probability.xls"
+
 input_format = "%m/%d/%Y"
 date_format = "%d/%m/%Y"
 
@@ -14,8 +16,8 @@ if __name__ == "__main__":
     output_rows = [
             ["optimalnumber", "probabilityrange", "date", "department", "capacity", "probability", "day", "month"]]
     department_wise_df_dict = {}
-    for sn in pd.ExcelFile("pickup_dictionary/sheet_wise_departments.xls").sheet_names:
-        department_wise_df_dict[sn] = pd.read_excel("pickup_dictionary/sheet_wise_departments.xls", sheetname=sn)
+    for sn in pd.ExcelFile(PROBABILITY_XLS).sheet_names:
+        department_wise_df_dict[sn] = pd.read_excel(PROBABILITY_XLS, sheetname=sn)
 
     department_number_dicionary = {"Medicine" : 1,  "Ortho" : 2, "Skin" : 3}
     capacity_list = get_capacity_list()
@@ -25,8 +27,10 @@ if __name__ == "__main__":
         df = department_wise_df_dict[department_number[0]]
 
         final_date_time_prob_dict = {}
-        date_list = df["Appointment Date"]
-        prob_list = df["Predicted Probability"]
+
+        df.columns = ["A", "B"]
+        date_list = df["A"]
+        prob_list = df["B"]
 
         for date_entry_row, probability_for_date in zip(date_list, prob_list):
             if pd.isnull(probability_for_date):
